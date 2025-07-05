@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:manshi/screens/login_screen.dart';
+import 'package:manshi/screens/register_screen.dart';
 
 class WellnessApp extends StatelessWidget {
   const WellnessApp({super.key});
@@ -8,9 +9,14 @@ class WellnessApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Wellness App',
-      home: MyLogin(),
+      home: LoginScreen(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(),
+      initialRoute: '/',
+      routes: {
+        'login_screen': (context) => const LoginScreen(),
+        'register_screen': (context) => const RegisterScreen(),
+      }
     );
   }
 }

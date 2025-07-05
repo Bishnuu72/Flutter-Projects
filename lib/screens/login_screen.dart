@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:manshi/screens/register_screen.dart';
 
-class MyLogin extends StatefulWidget {
-  const MyLogin({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  _MyLoginState createState() => _MyLoginState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _MyLoginState extends State<MyLogin> {
+class _LoginScreenState extends State<LoginScreen> {
   bool isChecked = false;
   @override
   Widget build(BuildContext context) {
@@ -72,9 +73,12 @@ class _MyLoginState extends State<MyLogin> {
                             ),
                           ]
                       ),
-                      const Text(
-                        "Forgot Password?",
-                        style: TextStyle(color: Colors.white),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          "Forgot Password?",
+                          style: TextStyle(color: Colors.white),
+                        )
                       )
                     ]
                   )
@@ -125,6 +129,31 @@ class _MyLoginState extends State<MyLogin> {
                       )
                     )
                   )
+                ),
+                Container(
+                  margin: EdgeInsets.only(top: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account?",
+                        style: TextStyle(
+                          color: Colors.white,
+                        )
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, 'register_screen');
+                        },
+                          child: Text(
+                            "Create an account",
+                              style: TextStyle(
+                                color: Colors.white,
+                              )
+                          )
+                        )
+                    ]
+                  ),
                 )
               ],
             ),
