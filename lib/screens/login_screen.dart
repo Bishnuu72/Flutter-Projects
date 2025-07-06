@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/screens/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,6 +11,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool isChecked = false;
+  bool isPasswordVisible = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +30,17 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               children: [
                 TextField(
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset(
+                        'assets/icon/email.svg',
+                        width: 20,
+                        height: 20,
+                        color: Colors.white,
+                      ),
+                    ),
                     fillColor: Colors.grey[900],
                     filled: true,
                     hintText: 'Enter your email',
@@ -41,7 +53,35 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 30,
                 ),
                 TextField(
+                  obscureText: !isPasswordVisible,
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset(
+                        'assets/icon/password.svg',
+                        width: 20,
+                        height: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    suffixIcon: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: SvgPicture.asset(
+                          isPasswordVisible?
+                              'assets/icon/eye-open.svg' : 'assets/icon/eye-slash.svg',
+                          width: 20,
+                          height: 20,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                     fillColor: Colors.grey.shade900,
                     filled: true,
                     hintText: 'Enter your password',
@@ -91,7 +131,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 50,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushNamed(context, 'preference_selection');
+                    },
                     child: const Text(
                       "Login",
                       style: TextStyle(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:manshi/screens/login_screen.dart';
+import 'package:manshi/screens/preference_selection.dart';
 import 'package:manshi/screens/register_screen.dart';
 
 class WellnessApp extends StatelessWidget {
@@ -11,11 +12,12 @@ class WellnessApp extends StatelessWidget {
       title: 'Wellness App',
       home: LoginScreen(),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(),
+      theme: ThemeData(fontFamily: 'Poppins'),
       initialRoute: '/',
       routes: {
         'login_screen': (context) => const LoginScreen(),
         'register_screen': (context) => const RegisterScreen(),
+        'preference_selection': (context) => const PreferenceSelection(),
       }
     );
   }

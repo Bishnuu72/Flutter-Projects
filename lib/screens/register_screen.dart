@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/screens/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -10,6 +11,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   bool isChecked = false;
+  bool isPasswordVisible = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +30,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   children: [
                     TextField(
+                      style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: SvgPicture.asset(
+                              'assets/icon/user.svg',
+                              width: 20,
+                              height: 20,
+                              color: Colors.white,
+                            ),
+                          ),
                           fillColor: Colors.grey[900],
                           filled: true,
                           hintText: 'Enter your name',
@@ -41,7 +53,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height:30,
                     ),
                     TextField(
+                      style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: SvgPicture.asset(
+                              'assets/icon/email.svg',
+                              width: 20,
+                              height: 20,
+                              color: Colors.white,
+                            ),
+                          ),
                         fillColor: Colors.grey[900],
                         filled: true,
                         hintText: 'Enter your email',
@@ -54,7 +76,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height: 30,
                     ),
                     TextField(
+                      obscureText: !isPasswordVisible,
+                      style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: SvgPicture.asset(
+                                'assets/icon/password.svg',
+                                width: 20,
+                                height: 20,
+                                color: Colors.white,
+                              ),
+                            ),
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  isPasswordVisible = !isPasswordVisible;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: SvgPicture.asset(
+                                  isPasswordVisible?
+                                  'assets/icon/eye-open.svg' : 'assets/icon/eye-slash.svg',
+                                  width: 20,
+                                  height: 20,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                             fillColor: Colors.grey.shade900,
                             filled: true,
                             hintText: 'Enter your password',
@@ -97,7 +147,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         width: double.infinity,
                         height: 50,
                         child: TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.pushNamed(context, 'login_screen');
+                            },
                             child: const Text(
                                 "Sign up",
                                 style: TextStyle(
