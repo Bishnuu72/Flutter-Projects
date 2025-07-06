@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:manshi/screens/dashboard_screen.dart';
 import 'package:manshi/screens/login_screen.dart';
 import 'package:manshi/screens/preference_selection.dart';
+import 'package:manshi/screens/profile_screen.dart';
 import 'package:manshi/screens/register_screen.dart';
 
 class WellnessApp extends StatelessWidget {
@@ -20,6 +21,7 @@ class WellnessApp extends StatelessWidget {
         'register_screen': (context) => const RegisterScreen(),
         'preference_selection': (context) => const PreferenceSelection(),
         'dashboard_screen': (context) => const DashboardScreen(),
+        'profile_screen': (context) => const ProfileScreen(),
       }
     );
   }
