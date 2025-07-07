@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Reusable clickable tile using InkWell
 Widget buildButtonTile(IconData icon, String title, VoidCallback onTap) {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 6),

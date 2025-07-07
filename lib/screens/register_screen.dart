@@ -161,14 +161,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             )
                         )
                     ),
-                    Container(
-                        margin: EdgeInsets.only(top:20),
-                        child: const Text(
-                            "Or",
-                            style: TextStyle(
-                              color: Colors.white,
-                            )
-                        )
+                    const SizedBox(height: 20,),
+                    const Center(
+                      child: Text(
+                        "Or",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                     Container(
                         margin: EdgeInsets.only(top:20),

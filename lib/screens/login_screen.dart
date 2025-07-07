@@ -145,14 +145,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     )
                   )
                 ),
-                Container(
-                  margin: EdgeInsets.only(top:20),
-                  child: const Text(
+                const SizedBox(height: 20,),
+                const Center(
+                  child: Text(
                     "Or",
                     style: TextStyle(
                       color: Colors.white,
-                    )
-                  )
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 Container(
                   margin: EdgeInsets.only(top:20),
