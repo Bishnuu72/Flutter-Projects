@@ -99,7 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Your wellness is an investment, not an expense.",
+                      '"Your wellness is an investment, not an expense."',
                       style: TextStyle(
                         fontSize: 20,
                         color: Colors.white,
@@ -128,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12,),
               buildButtonTile(Icons.wb_sunny_outlined, "Feeling blessed", () {
-                //Navigation here
+                Navigator.pushNamed(context, 'quotes_detail_screen');
               }),
               buildButtonTile(Icons.favorite_border, "Pride Month", () {
                 //Navigator here

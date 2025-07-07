@@ -27,7 +27,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           Container(
             padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.3, right:35, left:35),
-            child: Column(
+            child: ListView(
+              shrinkWrap: true,
               children: [
                 TextField(
                   style: TextStyle(color: Colors.white),
@@ -163,12 +164,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 50,
                   child: TextButton(
                     onPressed: () {},
-                    child: const Text(
-                      "Google",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                      )
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icon/google-g.svg',
+                          width: 40,
+                          height: 40,
+                          color: Colors.white,
+                        ),
+                        const Text(
+                          "Google",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                          ),
+                        )
+                      ],
                     )
                   )
                 ),

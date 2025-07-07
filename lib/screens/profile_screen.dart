@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import '../widgets/dashboard_widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:manshi/widgets/dashboard_widgets.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12,76 +18,94 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: SvgPicture.asset(
+            'assets/icon/chevron-backward.svg',
+            color: Colors.grey,
+            height: 40,
+            width: 40,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Profile',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w400, color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w400,
+          ),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            // Profile Info Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[850],
               ),
               child: Row(
                 children: [
                   const CircleAvatar(
-                    radius: 35,
                     backgroundImage: AssetImage('assets/profile.jpg'),
+                    radius: 35,
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 16,),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Bishnu Manshi',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        'Bishnu Yadav',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 10,),
                       Text(
-                        'bishnu.manshi@example.com',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                        'bishnuyadav857@gmail.com',
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   )
                 ],
               ),
             ),
-
-            const SizedBox(height: 30),
-
+            const SizedBox(height: 30,),
             Text(
               "MAKE IT YOURS",
-              style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 12),
-            buildButtonTile(Icons.menu_book, "Content Preferences", () {
-              print("Content Preferences tapped");
+            const SizedBox(height: 10,),
+            buildButtonTile(Icons.menu_book, "Content preferences", () {
+              //Navigaton
             }),
-
-            const SizedBox(height: 30),
-
+            const SizedBox(height: 20,),
             Text(
-              "ACCOUNT",
-              style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.bold, fontSize: 14),
+              'ACCOUNT',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10,),
             buildButtonTile(Icons.edit, "Theme", () {
-              print("Theme tapped");
+              //Navigation
             }),
             buildButtonTile(Icons.password, "Forgot Password", () {
-              print("Forgot Password tapped");
+              //Navigation
             }),
             buildButtonTile(Icons.logout, "Logout", () {
-              print("Logout tapped");
+              //Navigation
             }),
           ],
         ),
