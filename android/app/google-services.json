@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821180193078",
+    "project_id": "wellness-app-9906b",
+    "storage_bucket": "wellness-app-9906b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821180193078:android:ad5ff1a7a5a37d9663fb97",
+        "android_client_info": {
+          "package_name": "com.example.manshi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAhrGeZK0IFqRTXP1wNgmBOiwnaDj_ztw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

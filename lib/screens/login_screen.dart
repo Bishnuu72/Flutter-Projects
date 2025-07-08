@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/screens/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -133,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 50,
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, 'preference_selection');
+                      Navigator.pushNamed(context, RoutesName.preferenceSelection);
                     },
                     child: const Text(
                       "Login",
@@ -199,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, 'register_screen');
+                          Navigator.pushNamed(context, RoutesName.registerScreen);
                         },
                           child: Text(
                             "Create an account",

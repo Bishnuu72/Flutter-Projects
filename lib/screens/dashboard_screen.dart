@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/widgets/dashboard_widgets.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -32,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, 'profile_screen');
+                      Navigator.pushNamed(context, RoutesName.profileScreen);
                     },
                     child: const CircleAvatar(
                       radius: 25,
@@ -128,7 +129,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12,),
               buildButtonTile(Icons.wb_sunny_outlined, "Feeling blessed", () {
-                Navigator.pushNamed(context, 'quotes_detail_screen');
+                Navigator.pushNamed(context, RoutesName.quotesDetailScreen);
               }),
               buildButtonTile(Icons.favorite_border, "Pride Month", () {
                 //Navigator here

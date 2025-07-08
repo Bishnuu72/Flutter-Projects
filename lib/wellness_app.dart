@@ -1,30 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:manshi/screens/dashboard_screen.dart';
-import 'package:manshi/screens/login_screen.dart';
-import 'package:manshi/screens/preference_selection.dart';
-import 'package:manshi/screens/profile_screen.dart';
-import 'package:manshi/screens/quotes_detail_screen.dart';
-import 'package:manshi/screens/register_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:manshi/core/route_config/route_config.dart';
+import 'package:manshi/core/route_config/routes_name.dart';
 
 class WellnessApp extends StatelessWidget {
   const WellnessApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Wellness App',
-      home: LoginScreen(),
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'Poppins'),
-      initialRoute: '/',
-      routes: {
-        'login_screen': (context) => const LoginScreen(),
-        'register_screen': (context) => const RegisterScreen(),
-        'preference_selection': (context) => const PreferenceSelection(),
-        'dashboard_screen': (context) => const DashboardScreen(),
-        'profile_screen': (context) => const ProfileScreen(),
-        'quotes_detail_screen': (context) => const QuotesDetailScreen(),
-      }
+    return ScreenUtilInit(
+      designSize: const Size(360, 690),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      child: MaterialApp(
+        title: 'Wellness App',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'Poppins'),
+        initialRoute: RoutesName.defaultScreen,
+        onGenerateRoute: RouteConfig.generateRoute,
+      ),
     );
   }
 }

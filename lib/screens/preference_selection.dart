@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:manshi/core/route_config/routes_name.dart';
 
 class PreferenceSelection extends StatefulWidget {
   const PreferenceSelection({super.key});
@@ -104,7 +105,7 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, "dashboard_screen");
+                    Navigator.pushNamed(context, RoutesName.dashboardScreen);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[900],
