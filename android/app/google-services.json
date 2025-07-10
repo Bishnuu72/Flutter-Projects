@@ -12,7 +12,12 @@
           "package_name": "com.example.manshi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "821180193078-90c8ouc71qd6flu5pbil63b8hqqt6s6o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAAhrGeZK0IFqRTXP1wNgmBOiwnaDj_ztw"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "821180193078-90c8ouc71qd6flu5pbil63b8hqqt6s6o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

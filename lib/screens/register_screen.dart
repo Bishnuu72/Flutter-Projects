@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/screens/login_screen.dart';
+import 'package:manshi/firebase_auth/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -149,8 +150,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         width: double.infinity,
                         height: 50,
                         child: TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, RoutesName.loginScreen);
+                            onPressed: () async{
+                              // Navigator.pushNamed(context, RoutesName.loginScreen);
+                              final userCredential = await AuthService().signInWithGoogle();
+                              if (userCredential != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Signed in as ${userCredential.user!.displayName}')),
+                                );
+
+                                // Optional: navigate to dashboard or home
+                                // Navigator.pushNamed(context, RoutesName.dashboardScreen);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Google sign-in failed')),
+                                );
+                              }
                             },
                             child: const Text(
                                 "Sign up",

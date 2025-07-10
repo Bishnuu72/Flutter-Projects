@@ -68,14 +68,14 @@ class _QuotesDetailScreenState extends State<QuotesDetailScreen> {
                           fontSize: 20,
                         ),
                       ),
-                      SizedBox(height: 10,),
+                      SizedBox(height: 10),
                       Text(
-                        "- Bishnu yadav",
+                        "- Bishnu Yadav",
                         style: TextStyle(
                           color: Colors.grey,
                           fontSize: 16,
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -104,7 +104,7 @@ class _QuotesDetailScreenState extends State<QuotesDetailScreen> {
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
             Positioned(
@@ -118,7 +118,7 @@ class _QuotesDetailScreenState extends State<QuotesDetailScreen> {
                   onPressed: () {},
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
