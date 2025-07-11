@@ -8,4 +8,5 @@ class RoutesName {
   static const String dashboardScreen = '/dashboard_screen';
   static const String profileScreen = '/profile_screen';
   static const String quotesDetailScreen = '/quotes_detail_screen';
+  static const String productScreen = '/product_model';
 }

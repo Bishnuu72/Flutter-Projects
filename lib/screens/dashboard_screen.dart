@@ -151,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12,),
               buildButtonTile(Icons.air, "Breathe to Reset", () {
-                //Navigation hereee is
+                Navigator.pushNamed(context, RoutesName.productScreen);
               }),
             ],
           ),

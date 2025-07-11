@@ -3,6 +3,7 @@ import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/screens/dashboard_screen.dart';
 import 'package:manshi/screens/login_screen.dart';
 import 'package:manshi/screens/preference_selection.dart';
+import 'package:manshi/screens/product/product_screen.dart';
 import 'package:manshi/screens/profile_screen.dart';
 import 'package:manshi/screens/quotes_detail_screen.dart';
 import 'package:manshi/screens/register_screen.dart';
@@ -32,6 +33,9 @@ class RouteConfig {
 
       case RoutesName.quotesDetailScreen:
         return MaterialPageRoute(builder: (_) => const QuotesDetailScreen());
+
+      case RoutesName.productScreen:
+        return MaterialPageRoute(builder: (_) => const ProductScreen());
 
       case RoutesName.defaultScreen:
       default:
