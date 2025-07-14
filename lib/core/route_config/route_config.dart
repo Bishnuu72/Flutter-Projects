@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
+import 'package:manshi/screens/admin_screens/admin_dashboard_screen.dart';
+import 'package:manshi/screens/admin_screens/category_screen.dart';
+import 'package:manshi/screens/admin_screens/health_tips_screen.dart';
+import 'package:manshi/screens/admin_screens/quote_screen.dart';
+import 'package:manshi/screens/auth_screens/change_password_screen.dart';
+import 'package:manshi/screens/auth_screens/forgot_password_screen.dart';
 import 'package:manshi/screens/dashboard_screen.dart';
 import 'package:manshi/screens/login_screen.dart';
 import 'package:manshi/screens/preference_selection.dart';
@@ -36,6 +42,24 @@ class RouteConfig {
 
       case RoutesName.productScreen:
         return MaterialPageRoute(builder: (_) => const ProductScreen());
+
+      case RoutesName.forgotPasswordScreen:
+        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+        
+      case RoutesName.changePasswordScreen:
+        return MaterialPageRoute(builder: (_) => const ChangePasswordScreen());
+
+      case RoutesName.adminDashboardScreen:
+        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+
+      case RoutesName.categoryScreen:
+        return MaterialPageRoute(builder: (_) => const CategoryScreen());
+
+      case RoutesName.quoteScreen:
+        return MaterialPageRoute(builder: (_) => const QuoteScreen());
+
+      case RoutesName.healthTipsScreen:
+        return MaterialPageRoute(builder: (_) => const HealthTipsScreen());
 
       case RoutesName.defaultScreen:
       default:

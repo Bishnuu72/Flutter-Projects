@@ -20,7 +20,7 @@ class AuthService {
       return await FirebaseAuth.instance.signInWithCredential(credential);
     } catch (error) {
       // Handle Google authentication error
-      print('null');
+      print('Google sign-in failed: $error');
       return null;
     }
   }

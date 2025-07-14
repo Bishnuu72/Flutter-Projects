@@ -86,10 +86,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
         'profileImage': downloadUrl,
       });
-
-      setState(() {
-        profileImageUrl = downloadUrl;
-      });
+      // setState(() {
+      //   profileImageUrl = downloadUrl;
+      // });
+      await _loadUserData();  // Reloads profileImageUrl from Firestore after update
     }
   }
 
@@ -146,6 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onTap: _showImageOptions,
                     child: profileImageUrl != null
                         ? CircleAvatar(
+                      key: ValueKey(profileImageUrl),
                       backgroundImage: NetworkImage(profileImageUrl!),
                       radius: 35,
                     )
@@ -192,7 +193,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text('ACCOUNT', style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             buildButtonTile(Icons.edit, "Theme", () {}),
-            buildButtonTile(Icons.password, "Forgot Password", () {}),
+            buildButtonTile(Icons.password, "Forgot Password", () {Navigator.pushNamed(context, RoutesName.forgotPasswordScreen);}),
+            buildButtonTile(Icons.lock_reset, "Change Password", () {Navigator.pushNamed(context, RoutesName.changePasswordScreen);}),
             buildButtonTile(Icons.logout, "Logout", _logout),
           ],
         ),

@@ -1,3 +1,4 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,19 +21,21 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isEmailLoading = false;
   bool isGoogleLoading = false;
 
+  String selectedRole = 'user';
+
   final _formKey = GlobalKey<FormState>();
 
   Future<void> _loginWithEmailPassword() async {
     if (_emailController.text.trim().isEmpty) {
-      _showError("Email is required");
+      _showDialog("Error", "Email is required", DialogType.error);
       return;
     }
     if (!_emailController.text.contains('@')) {
-      _showError("Invalid email format");
+      _showDialog("Error", "Invalid email format", DialogType.error);
       return;
     }
     if (_passwordController.text.isEmpty) {
-      _showError("Password is required");
+      _showDialog("Error", "Password is required", DialogType.error);
       return;
     }
 
@@ -44,14 +47,21 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (userCredential.user != null) {
-        Navigator.pushNamed(context, RoutesName.preferenceSelection);
+        if (!mounted) return;
+        _showDialog("Success", "Login Successful!", DialogType.success, onOk: () {
+          if (selectedRole == 'user') {
+            Navigator.pushNamed(context, RoutesName.preferenceSelection);
+          } else {
+            Navigator.pushNamed(context, RoutesName.adminDashboardScreen);
+          }
+        });
       }
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? "Login failed");
+      _showDialog("Error", e.message ?? "Login failed", DialogType.error);
     } catch (_) {
-      _showError("An error occurred");
+      _showDialog("Error", "An error occurred", DialogType.error);
     } finally {
-      setState(() => isEmailLoading = false);
+      if (mounted) setState(() => isEmailLoading = false);
     }
   }
 
@@ -60,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
-        setState(() => isGoogleLoading = false);
+        if (mounted) setState(() => isGoogleLoading = false);
         return;
       }
 
@@ -72,20 +82,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
 
-      Navigator.pushNamed(context, RoutesName.preferenceSelection);
+      if (!mounted) return;
+      _showDialog("Success", "Google Sign-in Successful!", DialogType.success, onOk: () {
+        if (selectedRole == 'user') {
+          Navigator.pushNamed(context, RoutesName.preferenceSelection);
+        } else {
+          Navigator.pushNamed(context, RoutesName.adminDashboardScreen);
+        }
+      });
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Google login failed');
+      _showDialog("Error", e.message ?? 'Google login failed', DialogType.error);
     } catch (_) {
-      _showError("An error occurred with Google Sign-In");
+      _showDialog("Error", "An error occurred with Google Sign-In", DialogType.error);
     } finally {
-      setState(() => isGoogleLoading = false);
+      if (mounted) setState(() => isGoogleLoading = false);
     }
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+  void _showDialog(String title, String desc, DialogType type, {VoidCallback? onOk}) {
+    if (!mounted) return;
+    AwesomeDialog(
+      context: context,
+      dialogType: type,
+      animType: AnimType.rightSlide,
+      title: title,
+      desc: desc,
+      btnOkOnPress: onOk ?? () {},
+    ).show();
   }
 
   @override
@@ -111,162 +134,185 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ListView(
               shrinkWrap: true,
               children: [
+                Row(
+                  children: [
+                    const Text("Role:", style: TextStyle(color: Colors.white, fontSize: 16)),
+                    const SizedBox(width: 10),
+                    Row(
+                      children: [
+                        Radio<String>(
+                          value: 'admin',
+                          groupValue: selectedRole,
+                          onChanged: (value) => setState(() => selectedRole = value!),
+                          activeColor: Colors.white,
+                        ),
+                        const Text("Admin", style: TextStyle(color: Colors.white)),
+                        Radio<String>(
+                          value: 'user',
+                          groupValue: selectedRole,
+                          onChanged: (value) => setState(() => selectedRole = value!),
+                          activeColor: Colors.white,
+                        ),
+                        const Text("User", style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
+                  ],
+                ),
                 TextField(
                   controller: _emailController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: SvgPicture.asset(
-                        'assets/icon/email.svg',
-                        width: 20,
-                        height: 20,
-                        color: Colors.white,
-                      ),
-                    ),
-                    fillColor: Colors.grey[900],
-                    filled: true,
-                    hintText: 'Enter your email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                  decoration: _inputDecoration('Enter your email', 'email.svg'),
                 ),
                 const SizedBox(height: 30),
                 TextField(
                   controller: _passwordController,
                   obscureText: !isPasswordVisible,
                   style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: SvgPicture.asset(
-                        'assets/icon/password.svg',
-                        width: 20,
-                        height: 20,
-                        color: Colors.white,
-                      ),
-                    ),
-                    suffixIcon: GestureDetector(
-                      onTap: () => setState(() => isPasswordVisible = !isPasswordVisible),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: SvgPicture.asset(
-                          isPasswordVisible
-                              ? 'assets/icon/eye-open.svg'
-                              : 'assets/icon/eye-slash.svg',
-                          width: 20,
-                          height: 20,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    fillColor: Colors.grey[900],
-                    filled: true,
-                    hintText: 'Enter your password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                  decoration: _passwordInputDecoration(),
                 ),
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(children: [
-                        Checkbox(
-                          value: isChecked,
-                          onChanged: (value) => setState(() => isChecked = value!),
-                          checkColor: Colors.white,
-                          activeColor: Colors.grey[700],
-                        ),
-                        const Text("Remember me", style: TextStyle(color: Colors.white)),
-                      ]),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text("Forgot Password?", style: TextStyle(color: Colors.white)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(children: [
+                      Checkbox(
+                        value: isChecked,
+                        onChanged: (value) => setState(() => isChecked = value!),
+                        checkColor: Colors.white,
+                        activeColor: Colors.grey[700],
                       ),
-                    ],
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  width: double.infinity,
-                  height: 50,
-                  child: TextButton(
-                    onPressed: isEmailLoading ? null : _loginWithEmailPassword,
-                    child: isEmailLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                      "Login",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      const Text("Remember me", style: TextStyle(color: Colors.white)),
+                    ]),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, RoutesName.forgotPasswordScreen);
+                      },
+                      child: const Text("Forgot Password?", style: TextStyle(color: Colors.white)),
                     ),
-                  ),
+                  ],
                 ),
+                _loginButton(),
                 const SizedBox(height: 20),
                 const Center(
                   child: Text(
                     "Or",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                 ),
-                Container(
-                  margin: const EdgeInsets.only(top: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  width: double.infinity,
-                  height: 50,
-                  child: TextButton(
-                    onPressed: isGoogleLoading ? null : signInWithGoogleOnlyIfUserExists,
-                    child: isGoogleLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icon/google-g.svg',
-                          width: 40,
-                          height: 40,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text("Google", style: TextStyle(color: Colors.white, fontSize: 18)),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(top: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Don't have an account?", style: TextStyle(color: Colors.white)),
-                      TextButton(
-                        onPressed: () => Navigator.pushNamed(context, RoutesName.registerScreen),
-                        child: const Text("Create an account", style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
-                  ),
-                )
+                _googleSignInButton(),
+                _registerRedirect()
               ],
             ),
           ),
         ),
       ]),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hintText, String iconName) {
+    return InputDecoration(
+      prefixIcon: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: SvgPicture.asset(
+          'assets/icon/$iconName',
+          width: 20,
+          height: 20,
+          color: Colors.white,
+        ),
+      ),
+      fillColor: Colors.grey[900],
+      filled: true,
+      hintText: hintText,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    );
+  }
+
+  InputDecoration _passwordInputDecoration() {
+    return InputDecoration(
+      prefixIcon: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: SvgPicture.asset(
+          'assets/icon/password.svg',
+          width: 20,
+          height: 20,
+          color: Colors.white,
+        ),
+      ),
+      suffixIcon: GestureDetector(
+        onTap: () => setState(() => isPasswordVisible = !isPasswordVisible),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: SvgPicture.asset(
+            isPasswordVisible ? 'assets/icon/eye-open.svg' : 'assets/icon/eye-slash.svg',
+            width: 20,
+            height: 20,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      fillColor: Colors.grey[900],
+      filled: true,
+      hintText: 'Enter your password',
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    );
+  }
+
+  Widget _loginButton() {
+    return Container(
+      decoration: BoxDecoration(color: Colors.grey[900], borderRadius: BorderRadius.circular(10)),
+      width: double.infinity,
+      height: 50,
+      child: TextButton(
+        onPressed: isEmailLoading ? null : _loginWithEmailPassword,
+        child: isEmailLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+          "Login",
+          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget _googleSignInButton() {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      decoration: BoxDecoration(color: Colors.grey[900], borderRadius: BorderRadius.circular(10)),
+      width: double.infinity,
+      height: 50,
+      child: TextButton(
+        onPressed: isGoogleLoading ? null : signInWithGoogleOnlyIfUserExists,
+        child: isGoogleLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/icon/google-g.svg',
+              width: 40,
+              height: 40,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            const Text("Google", style: TextStyle(color: Colors.white, fontSize: 18)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _registerRedirect() {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text("Don't have an account?", style: TextStyle(color: Colors.white)),
+          TextButton(
+            onPressed: () => Navigator.pushNamed(context, RoutesName.registerScreen),
+            child: const Text("Create an account", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 }
