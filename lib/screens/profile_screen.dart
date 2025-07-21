@@ -8,7 +8,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
-import 'package:manshi/widgets/dashboard_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,7 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? displayName;
 
   final cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dg3uu7mtg/image/upload';
-  final uploadPreset = 'wellness_app_upload'; // Make sure this is unsigned preset
+  final uploadPreset = 'wellness_app_upload';
 
   @override
   void initState() {
@@ -38,8 +37,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final doc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
         if (doc.exists) {
           setState(() {
-            displayName = doc['name'];
-            profileImageUrl = doc['profileImage'];
+            displayName = doc.data()?['name'] ?? 'No Name';
+            profileImageUrl = doc.data()?['profileImage'];
           });
         }
       } catch (e) {
@@ -50,6 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, RoutesName.loginScreen, (route) => false);
   }
 
@@ -85,10 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
 
-    if (picked == null) {
-      print('No image selected.');
-      return;
-    }
+    if (picked == null) return;
 
     final file = File(picked.path);
 
@@ -98,36 +95,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ..files.add(await http.MultipartFile.fromPath('file', file.path));
 
       final response = await request.send();
-
       final responseBody = await response.stream.bytesToString();
-
-      print('Upload response status: ${response.statusCode}');
-      print('Upload response body: $responseBody');
 
       if (response.statusCode == 200) {
         final resData = jsonDecode(responseBody);
         final downloadUrl = resData['secure_url'];
 
-        try {
-          await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-            'profileImage': downloadUrl,
-          });
-          print('Profile image updated in Firestore.');
-        } catch (e) {
-          print('Firestore update error: $e');
-        }
+        await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
+          'profileImage': downloadUrl,
+        });
 
-        await _loadUserData();
+        setState(() => profileImageUrl = downloadUrl);
       } else {
-        print('Upload failed with status: ${response.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Image upload failed. Please try again.')),
+          const SnackBar(content: Text('Image upload failed. Please try again.')),
         );
       }
     } catch (e) {
       print('Upload error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading image.')),
+        const SnackBar(content: Text('Error uploading image.')),
       );
     }
   }
@@ -138,14 +125,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
         'profileImage': null,
       });
-      setState(() {
-        profileImageUrl = null;
-      });
-      print('Profile image removed.');
+      setState(() => profileImageUrl = null);
     } catch (e) {
       print('Error removing profile image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error removing profile image.')),
+        const SnackBar(content: Text('Error removing profile image.')),
       );
     }
   }
@@ -177,80 +161,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[850],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: _showImageOptions,
-                    child: profileImageUrl != null
-                        ? CircleAvatar(
-                      key: ValueKey(profileImageUrl),
-                      backgroundImage: NetworkImage(profileImageUrl!),
-                      radius: 35,
-                    )
-                        : CircleAvatar(
-                      radius: 35,
-                      backgroundColor: Colors.white,
-                      child: Text(
-                        (displayName?.isNotEmpty ?? false) ? displayName![0].toUpperCase() : "?",
-                        style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName ?? 'No Name',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          email,
-                          style: TextStyle(color: Colors.grey[400], fontSize: 14),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _profileHeader(email),
             const SizedBox(height: 30),
-            Text(
-              "MAKE IT YOURS",
-              style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            buildButtonTile(Icons.menu_book, "Content preferences", () {}),
+            _sectionTitle("MAKE IT YOURS"),
+            _singleButtonContainer(Icons.menu_book, "Content preferences", () {}),
             const SizedBox(height: 20),
-            Text(
-              'ACCOUNT',
-              style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            buildButtonTile(Icons.edit, "Theme", () {}),
-            buildButtonTile(Icons.password, "Forgot Password", () {
+            _sectionTitle('ACCOUNT'),
+            _singleButtonContainer(Icons.edit, "Theme", () {}),
+            _singleButtonContainer(Icons.password, "Forgot Password", () {
               Navigator.pushNamed(context, RoutesName.forgotPasswordScreen);
             }),
-            buildButtonTile(Icons.lock_reset, "Change Password", () {
+            _singleButtonContainer(Icons.lock_reset, "Change Password", () {
               Navigator.pushNamed(context, RoutesName.changePasswordScreen);
             }),
-            buildButtonTile(Icons.logout, "Logout", _logout),
+            _singleButtonContainer(Icons.logout, "Logout", _logout),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _profileHeader(String email) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _showImageOptions,
+            child: profileImageUrl != null
+                ? CircleAvatar(
+              key: ValueKey(profileImageUrl),
+              backgroundImage: NetworkImage(profileImageUrl!),
+              radius: 35,
+            )
+                : CircleAvatar(
+              radius: 35,
+              backgroundColor: Colors.white,
+              child: Text(
+                (displayName?.isNotEmpty ?? false) ? displayName![0].toUpperCase() : "?",
+                style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName ?? 'No Name',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  email,
+                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _singleButtonContainer(IconData icon, String title, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.white),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        onTap: onTap,
       ),
     );
   }
