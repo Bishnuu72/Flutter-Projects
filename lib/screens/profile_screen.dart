@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/widgets/dashboard_widgets.dart';
@@ -21,6 +22,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? profileImageUrl;
   String? displayName;
 
+  final cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dg3uu7mtg/image/upload';
+  final uploadPreset = 'wellness_app_upload'; // Make sure this is unsigned preset
+
   @override
   void initState() {
     super.initState();
@@ -30,12 +34,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserData() async {
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
-      if (doc.exists) {
-        setState(() {
-          displayName = doc['name'];
-          profileImageUrl = doc['profileImage'];
-        });
+      try {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+        if (doc.exists) {
+          setState(() {
+            displayName = doc['name'];
+            profileImageUrl = doc['profileImage'];
+          });
+        }
+      } catch (e) {
+        print('Error loading user data: $e');
       }
     }
   }
@@ -77,34 +85,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
 
-    if (picked != null) {
-      final file = File(picked.path);
-      final storageRef = FirebaseStorage.instance.ref().child('profile_images/${user!.uid}');
-      await storageRef.putFile(file);
-      final downloadUrl = await storageRef.getDownloadURL();
+    if (picked == null) {
+      print('No image selected.');
+      return;
+    }
 
-      await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-        'profileImage': downloadUrl,
-      });
-      // setState(() {
-      //   profileImageUrl = downloadUrl;
-      // });
-      await _loadUserData();  // Reloads profileImageUrl from Firestore after update
+    final file = File(picked.path);
+
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl))
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(await http.MultipartFile.fromPath('file', file.path));
+
+      final response = await request.send();
+
+      final responseBody = await response.stream.bytesToString();
+
+      print('Upload response status: ${response.statusCode}');
+      print('Upload response body: $responseBody');
+
+      if (response.statusCode == 200) {
+        final resData = jsonDecode(responseBody);
+        final downloadUrl = resData['secure_url'];
+
+        try {
+          await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
+            'profileImage': downloadUrl,
+          });
+          print('Profile image updated in Firestore.');
+        } catch (e) {
+          print('Firestore update error: $e');
+        }
+
+        await _loadUserData();
+      } else {
+        print('Upload failed with status: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Image upload failed. Please try again.')),
+        );
+      }
+    } catch (e) {
+      print('Upload error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading image.')),
+      );
     }
   }
 
   Future<void> _deletePhoto() async {
     Navigator.pop(context);
-    final storageRef = FirebaseStorage.instance.ref().child('profile_images/${user!.uid}');
-    await storageRef.delete();
-
-    await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-      'profileImage': null,
-    });
-
-    setState(() {
-      profileImageUrl = null;
-    });
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
+        'profileImage': null,
+      });
+      setState(() {
+        profileImageUrl = null;
+      });
+      print('Profile image removed.');
+    } catch (e) {
+      print('Error removing profile image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error removing profile image.')),
+      );
+    }
   }
 
   @override
@@ -186,15 +229,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            Text("MAKE IT YOURS", style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(
+              "MAKE IT YOURS",
+              style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
             buildButtonTile(Icons.menu_book, "Content preferences", () {}),
             const SizedBox(height: 20),
-            Text('ACCOUNT', style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(
+              'ACCOUNT',
+              style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
             buildButtonTile(Icons.edit, "Theme", () {}),
-            buildButtonTile(Icons.password, "Forgot Password", () {Navigator.pushNamed(context, RoutesName.forgotPasswordScreen);}),
-            buildButtonTile(Icons.lock_reset, "Change Password", () {Navigator.pushNamed(context, RoutesName.changePasswordScreen);}),
+            buildButtonTile(Icons.password, "Forgot Password", () {
+              Navigator.pushNamed(context, RoutesName.forgotPasswordScreen);
+            }),
+            buildButtonTile(Icons.lock_reset, "Change Password", () {
+              Navigator.pushNamed(context, RoutesName.changePasswordScreen);
+            }),
             buildButtonTile(Icons.logout, "Logout", _logout),
           ],
         ),

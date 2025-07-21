@@ -63,14 +63,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'name': name,
         'email': email,
+        'role': 'user', // ✅ Added role field
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
-      _showDialog('Success', 'Registered successfully!', DialogType.success,
-          onOk: () {
-            Navigator.pushNamed(context, RoutesName.loginScreen);
-          });
+      _showDialog('Success', 'Registered successfully!', DialogType.success, onOk: () {
+        Navigator.pushNamed(context, RoutesName.loginScreen);
+      });
     } on FirebaseAuthException catch (e) {
       String message = "Registration failed";
       if (e.code == 'email-already-in-use') {
@@ -154,9 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 _submitButton(),
                 const SizedBox(height: 20),
-                const Center(
-                  child: Text("Or", style: TextStyle(color: Colors.white, fontSize: 16)),
-                ),
+                const Center(child: Text("Or", style: TextStyle(color: Colors.white, fontSize: 16))),
                 _googleSignInButton(),
                 _loginRedirect()
               ],

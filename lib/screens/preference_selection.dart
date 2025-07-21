@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
@@ -26,6 +28,39 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
   ];
 
   final Set<String> selectedTopics = {};
+  bool isSaving = false;
+
+  Future<void> savePreferences() async {
+    setState(() {
+      isSaving = true;
+    });
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'preferences': selectedTopics.toList(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferences saved successfully')),
+        );
+        Navigator.pushNamed(context, RoutesName.dashboardScreen);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save preferences: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,10 +134,8 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: selectedTopics.isNotEmpty
-                      ? () {
-                    Navigator.pushNamed(context, RoutesName.dashboardScreen);
-                  }
+                  onPressed: selectedTopics.isNotEmpty && !isSaving
+                      ? savePreferences
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[900],
@@ -122,7 +155,16 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
                       },
                     ),
                   ),
-                  child: const Text(
+                  child: isSaving
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text(
                     "Save",
                     style: TextStyle(fontSize: 20),
                   ),
