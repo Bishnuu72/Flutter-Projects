@@ -15,4 +15,5 @@ class RoutesName {
   static const String categoryScreen = '/category_screen';
   static const String quoteScreen = '/quote_screen';
   static const String healthTipsScreen = '/health_tips_screen';
+  static const String userListScreen = '/user_list_screen';
 }

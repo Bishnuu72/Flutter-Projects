@@ -69,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
       _showDialog('Success', 'Registered successfully!', DialogType.success, onOk: () {
-        Navigator.pushNamed(context, RoutesName.loginScreen);
+        Navigator.pushNamed(context, RoutesName.preferenceSelection);
       });
     } on FirebaseAuthException catch (e) {
       String message = "Registration failed";

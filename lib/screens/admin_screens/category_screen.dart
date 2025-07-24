@@ -103,7 +103,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 style: TextStyle(color: Colors.white)),
             const SizedBox(height: 10),
 
-            // ✅ DottedBorder starts here
+            // DottedBorder starts here
             DottedBorder(
               color: Colors.white54,
               strokeWidth: 1.2,

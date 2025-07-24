@@ -4,6 +4,7 @@ import 'package:manshi/screens/admin_screens/admin_dashboard_screen.dart';
 import 'package:manshi/screens/admin_screens/category_screen.dart';
 import 'package:manshi/screens/admin_screens/health_tips_screen.dart';
 import 'package:manshi/screens/admin_screens/quote_screen.dart';
+import 'package:manshi/screens/admin_screens/user_list_screen.dart';
 import 'package:manshi/screens/auth_screens/change_password_screen.dart';
 import 'package:manshi/screens/auth_screens/forgot_password_screen.dart';
 import 'package:manshi/screens/dashboard_screen.dart';
@@ -60,6 +61,9 @@ class RouteConfig {
 
       case RoutesName.healthTipsScreen:
         return MaterialPageRoute(builder: (_) => const HealthTipsScreen());
+
+      case RoutesName.userListScreen:
+        return MaterialPageRoute(builder: (_) => const UserListScreen());
 
       case RoutesName.defaultScreen:
       default:
