@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-// import 'package:manshi/core/firebase_auth/notification_service.dart';
+import 'notification_service.dart';
 
 /// A service class for managing Firebase Cloud Messaging (FCM) operations.
 ///
@@ -50,7 +50,7 @@ class FCMServices {
   /// - **Foreground**: Handles messages while the app is running and visible.
   /// - **Background/Terminated**: Handles when the user taps a notification
   ///   to open or resume the app.
-  void listenFCMMessage(Future<void> Function(RemoteMessage) handler) {
+  void listenFCMMessage(BackgroundMessageHandler handler) {
     // Notification is received while app is open [foreground]
     FirebaseMessaging.onMessage.listen(_handleFCMMessage);
 
@@ -61,13 +61,13 @@ class FCMServices {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       log("Notification opened title: ${message.notification?.title}");
       log("Notification opened body: ${message.notification?.body}");
-      // NotificationService().onClickToNotification(
-      //   jsonEncode({
-      //     'title': message.notification?.title,
-      //     'body': message.notification?.body,
-      //
-      //   }),
-      // );
+      NotificationService().onClickToNotification(
+        jsonEncode({
+          'title': message.notification?.title,
+          'body': message.notification?.body,
+
+        }),
+      );
     });
   }
 
