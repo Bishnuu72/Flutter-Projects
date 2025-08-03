@@ -16,4 +16,15 @@ class RoutesName {
   static const String quoteScreen = '/quote_screen';
   static const String healthTipsScreen = '/health_tips_screen';
   static const String userListScreen = '/user_list_screen';
+  
+  // New routes for enhanced functionality
+  static const String favoritesScreen = '/favorites_screen';
+  static const String motivationScreen = '/motivation_screen';
+  static const String healthTipsDetailScreen = '/health_tips_detail_screen';
+  static const String categoryListScreen = '/category_list_screen';
+  static const String quoteListScreen = '/quote_list_screen';
+  static const String healthTipListScreen = '/health_tip_list_screen';
+  static const String preferenceListScreen = '/preference_list_screen';
+  static const String adminInitScreen = '/admin_init_screen';
+  static const String reminderScreen = '/reminder_screen';
 }

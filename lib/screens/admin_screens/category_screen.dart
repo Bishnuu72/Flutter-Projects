@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:dotted_border/dotted_border.dart';
-import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -12,15 +10,42 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   String _selectedType = 'Quotes';
-  File? _selectedImage;
+  bool _isLoading = false;
 
-  Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _selectedImage = File(picked.path);
-      });
+  Future<void> _saveCategory() async {
+    if (_categoryController.text.isEmpty || _descriptionController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final categoryData = {
+        'name': _categoryController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'type': _selectedType, // <-- Save selected type
+        'createdAt': Timestamp.now(),
+      };
+
+      await FirebaseFirestore.instance.collection('categories').add(categoryData);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Category saved successfully!')),
+      );
+
+      _categoryController.clear();
+      _descriptionController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error saving category.')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -28,11 +53,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final isSelected = _selectedType == type;
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedType = type;
-          });
-        },
+        onTap: () => setState(() => _selectedType = type),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
@@ -48,10 +69,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 color: Colors.white,
               ),
               const SizedBox(width: 8),
-              Text(
-                type,
-                style: const TextStyle(color: Colors.white),
-              ),
+              Text(type, style: const TextStyle(color: Colors.white)),
             ],
           ),
         ),
@@ -79,7 +97,24 @@ class _CategoryScreenState extends State<CategoryScreen> {
               controller: _categoryController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Category Name',
+                hintText: 'Enter category name',
+                hintStyle: const TextStyle(color: Colors.grey),
+                filled: true,
+                fillColor: Colors.grey[850],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Description:', style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _descriptionController,
+              style: const TextStyle(color: Colors.white),
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Enter category description',
                 hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: Colors.grey[850],
@@ -98,50 +133,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 _buildTypeButton("Health"),
               ],
             ),
-            const SizedBox(height: 20),
-            const Text('Choose image for category:',
-                style: TextStyle(color: Colors.white)),
-            const SizedBox(height: 10),
-
-            // DottedBorder starts here
-            DottedBorder(
-              color: Colors.white54,
-              strokeWidth: 1.2,
-              dashPattern: const [8, 4],
-              borderType: BorderType.RRect,
-              radius: const Radius.circular(10),
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 150,
-                  width: double.infinity,
-                  alignment: Alignment.center,
-                  child: _selectedImage != null
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                  )
-                      : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.image, size: 40, color: Colors.white),
-                      SizedBox(height: 8),
-                      Text('Tap to choose image',
-                          style: TextStyle(color: Colors.white70)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
             const Spacer(),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // Save logic here
-                },
+                onPressed: _isLoading ? null : _saveCategory,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey[850],
                   padding: const EdgeInsets.symmetric(vertical: 18),
@@ -149,7 +145,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Save', style: TextStyle(fontSize: 16)),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Save', style: TextStyle(fontSize: 16)),
               ),
             )
           ],

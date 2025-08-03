@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
+import 'package:manshi/firebase_auth/fcm_services.dart';
+import 'package:manshi/services/firestore_service.dart';
+import 'package:manshi/utils/debug_utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isGoogleLoading = false;
 
   final _firestore = FirebaseFirestore.instance;
+  final FCMServices _fcmServices = FCMServices();
 
   void _showDialog(String title, String desc, DialogType type, {VoidCallback? onOk}) {
     if (!mounted) return;
@@ -34,6 +38,17 @@ class _LoginScreenState extends State<LoginScreen> {
       desc: desc,
       btnOkOnPress: onOk ?? () {},
     ).show();
+  }
+
+  Future<void> _updateFCMToken(String userId) async {
+    try {
+      final fcmToken = await _fcmServices.getFCMToken();
+      if (fcmToken != null) {
+        await FirestoreService.updateUserFCMToken(userId, fcmToken);
+      }
+    } catch (e) {
+      print('Error updating FCM token: $e');
+    }
   }
 
   Future<void> _loginWithEmailPassword() async {
@@ -58,17 +73,26 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
+      // Update FCM token after successful login
+      await _updateFCMToken(userCredential.user!.uid);
+
       final userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
 
       if (userDoc.exists) {
         final role = userDoc.data()!['role'] ?? 'user';
 
         if (!mounted) return;
-        _showDialog("Success", "Login Successful!", DialogType.success, onOk: () {
+        _showDialog("Success", "Login Successful!", DialogType.success, onOk: () async {
           if (role == 'admin') {
-            Navigator.pushNamed(context, RoutesName.adminDashboardScreen);
+            // Check if database has any data
+            final categoriesSnapshot = await _firestore.collection('categories').get();
+            if (categoriesSnapshot.docs.isEmpty) {
+              Navigator.pushReplacementNamed(context, RoutesName.adminInitScreen);
+            } else {
+              Navigator.pushReplacementNamed(context, RoutesName.adminDashboardScreen);
+            }
           } else {
-            Navigator.pushNamed(context, RoutesName.preferenceSelection);
+            Navigator.pushReplacementNamed(context, RoutesName.preferenceSelection);
           }
         });
       } else {
@@ -101,6 +125,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
 
+      // Update FCM token after successful login
+      await _updateFCMToken(userCredential.user!.uid);
+
       final userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
 
       if (!userDoc.exists) {
@@ -109,6 +136,8 @@ class _LoginScreenState extends State<LoginScreen> {
           'name': userCredential.user!.displayName ?? '',
           'email': userCredential.user!.email ?? '',
           'role': 'user',
+          'preferences': [],
+          'favoriteQuotes': [],
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
@@ -117,11 +146,17 @@ class _LoginScreenState extends State<LoginScreen> {
       final role = fetchedUser.data()!['role'] ?? 'user';
 
       if (!mounted) return;
-      _showDialog("Success", "Google Sign-in Successful!", DialogType.success, onOk: () {
+      _showDialog("Success", "Google Sign-in Successful!", DialogType.success, onOk: () async {
         if (role == 'admin') {
-          Navigator.pushNamed(context, RoutesName.adminDashboardScreen);
+          // Check if database has any data
+          final categoriesSnapshot = await _firestore.collection('categories').get();
+          if (categoriesSnapshot.docs.isEmpty) {
+            Navigator.pushReplacementNamed(context, RoutesName.adminInitScreen);
+          } else {
+            Navigator.pushReplacementNamed(context, RoutesName.adminDashboardScreen);
+          }
         } else {
-          Navigator.pushNamed(context, RoutesName.preferenceSelection);
+          Navigator.pushReplacementNamed(context, RoutesName.preferenceSelection);
         }
       });
     } on FirebaseAuthException catch (e) {
@@ -192,7 +227,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               _googleSignInButton(),
-              _registerRedirect()
+              _registerRedirect(),
+              const SizedBox(height: 20),
+              _debugButton(),
             ],
           ),
         ),
@@ -304,6 +341,19 @@ class _LoginScreenState extends State<LoginScreen> {
             child: const Text("Create an account", style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _debugButton() {
+    return Container(
+      width: double.infinity,
+      child: TextButton(
+        onPressed: () => DebugUtils.debugFirebaseConnection(context),
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.grey[400],
+        ),
+        child: const Text("Debug Firebase Connection"),
       ),
     );
   }

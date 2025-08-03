@@ -3,6 +3,8 @@ import 'dart:developer';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 /// Top-level function to handle notification tap when app is in the background
 /// or terminated.
@@ -31,6 +33,8 @@ class NotificationService {
   /// Initializes the local notifications plugin with platform-specific settings
   /// and sets up handlers for notification taps (both foreground and background).
   void initializeLocalNotifications() async {
+    tz.initializeTimeZones(); // Initialize timezones
+    
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('notification');
     const DarwinInitializationSettings initializationSettingsIOS =
@@ -110,7 +114,152 @@ class NotificationService {
     );
   }
 
+  /// Schedules a daily reminder notification.
+  ///
+  /// - [id]: Unique identifier for the notification
+  /// - [title]: Notification title
+  /// - [body]: Notification body
+  /// - [hour]: Hour of the day (0-23)
+  /// - [minute]: Minute of the hour (0-59)
+  /// - [payload]: Optional data payload
+  Future<void> scheduleDailyReminder({
+    required int id,
+    required String title,
+    required String body,
+    required int hour,
+    required int minute,
+    String? payload,
+  }) async {
+    const String channelId = 'wellness_reminders';
+    const String channelName = 'Wellness Reminders';
+    const String channelDesc = 'Daily wellness reminders';
+
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: AndroidNotificationDetails(
+        channelId,
+        channelName,
+        channelDescription: channelDesc,
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        showWhen: true,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      _nextInstanceOfTime(hour, minute),
+      platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      payload: payload,
+    );
+  }
+
+  /// Schedules a weekly reminder notification.
+  ///
+  /// - [id]: Unique identifier for the notification
+  /// - [title]: Notification title
+  /// - [body]: Notification body
+  /// - [dayOfWeek]: Day of the week (1-7, where 1 is Monday)
+  /// - [hour]: Hour of the day (0-23)
+  /// - [minute]: Minute of the hour (0-59)
+  /// - [payload]: Optional data payload
+  Future<void> scheduleWeeklyReminder({
+    required int id,
+    required String title,
+    required String body,
+    required int dayOfWeek,
+    required int hour,
+    required int minute,
+    String? payload,
+  }) async {
+    const String channelId = 'wellness_reminders';
+    const String channelName = 'Wellness Reminders';
+    const String channelDesc = 'Weekly wellness reminders';
+
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: AndroidNotificationDetails(
+        channelId,
+        channelName,
+        channelDescription: channelDesc,
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        showWhen: true,
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      _nextInstanceOfWeekday(dayOfWeek, hour, minute),
+      platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      payload: payload,
+    );
+  }
+
+  /// Cancels a scheduled notification by ID.
+  ///
+  /// - [id]: The ID of the notification to cancel
+  Future<void> cancelNotification(int id) async {
+    await flutterLocalNotificationsPlugin.cancel(id);
+  }
+
+  /// Cancels all scheduled notifications.
+  Future<void> cancelAllNotifications() async {
+    await flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  /// Gets all pending notification requests.
+  Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+    return await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+  }
+
   void onClickToNotification(String? data) {
     log("notification payload: $data");
+  }
+
+  /// Calculates the next instance of a specific time for daily reminders.
+  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    
+    return scheduledDate;
+  }
+
+  /// Calculates the next instance of a specific weekday and time for weekly reminders.
+  tz.TZDateTime _nextInstanceOfWeekday(int dayOfWeek, int hour, int minute) {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    
+    while (scheduledDate.weekday != dayOfWeek) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 7));
+    }
+    
+    return scheduledDate;
   }
 }

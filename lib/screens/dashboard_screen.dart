@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/widgets/dashboard_widgets.dart';
+import 'package:manshi/services/firestore_service.dart';
+import 'package:manshi/models/quote_model.dart';
+import 'package:manshi/models/user_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -10,6 +14,62 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  QuoteModel? todayQuote;
+  UserModel? currentUser;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadDashboardData();
+  }
+
+  Future<void> loadDashboardData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Load user data
+        final userData = await FirestoreService.getUser(user.uid);
+        setState(() {
+          currentUser = userData;
+        });
+
+        // Load today's quote (for now, just get a random quote)
+        final quotes = await FirestoreService.getQuotes();
+        if (quotes.isNotEmpty) {
+          // Get a quote based on user preferences if available
+          if (userData != null && userData.preferences.isNotEmpty) {
+            final personalizedQuotes = await FirestoreService.getQuotesByPreferences(userData.preferences);
+            if (personalizedQuotes.isNotEmpty) {
+              setState(() {
+                todayQuote = personalizedQuotes.first;
+                isLoading = false;
+              });
+            } else {
+              setState(() {
+                todayQuote = quotes.first;
+                isLoading = false;
+              });
+            }
+          } else {
+            setState(() {
+              todayQuote = quotes.first;
+              isLoading = false;
+            });
+          }
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +107,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, RoutesName.favoritesScreen);
+                      },
                       icon: const Icon(Icons.favorite_border, size: 28,),
                       label: const Text('My Favorites',
                       style: TextStyle(fontSize: 16),),
@@ -64,9 +126,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 10,),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.notifications_none, size: 28,),
-                      label: const Text('Remind Me',
+                      onPressed: () {
+                        Navigator.pushNamed(context, RoutesName.motivationScreen);
+                      },
+                      icon: const Icon(Icons.format_quote, size: 28,),
+                      label: const Text('Motivation',
                       style: TextStyle(fontSize: 16),),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey[850],
@@ -79,6 +143,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 10,),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(context, RoutesName.reminderScreen);
+                  },
+                  icon: const Icon(Icons.alarm, size: 28,),
+                  label: const Text('Schedule Reminder',
+                  style: TextStyle(fontSize: 16),),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[850],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20,),
               const Text(
@@ -96,27 +180,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: Colors.grey[850],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '"Your wellness is an investment, not an expense."',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    SizedBox(height: 12,),
-                    Text(
-                      "- Bishnu Kumar Yadav",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,fontStyle: FontStyle.italic,
-                      ),
-                    )
-                  ],
-                ),
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : todayQuote != null
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '"${todayQuote!.text}"',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              const SizedBox(height: 12,),
+                              Text(
+                                "- ${todayQuote!.author}",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white70,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              )
+                            ],
+                          )
+                        : const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '"Your wellness is an investment, not an expense."',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              SizedBox(height: 12,),
+                              Text(
+                                "- Bishnu Kumar Yadav",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white70,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              )
+                            ],
+                          ),
               ),
               const SizedBox(height: 20,),
               const Text(
@@ -129,16 +241,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12,),
               buildButtonTile(Icons.wb_sunny_outlined, "Feeling blessed", () {
-                Navigator.pushNamed(context, RoutesName.quotesDetailScreen);
+                Navigator.pushNamed(context, RoutesName.motivationScreen);
               }),
               buildButtonTile(Icons.favorite_border, "Pride Month", () {
-                //Navigator here
+                Navigator.pushNamed(context, RoutesName.motivationScreen);
               }),
               buildButtonTile(Icons.star_border, "Self-worth", () {
-                //Navihgator hereee
+                Navigator.pushNamed(context, RoutesName.motivationScreen);
               }),
               buildButtonTile(Icons.favorite, "Love", () {
-                //Navigator here
+                Navigator.pushNamed(context, RoutesName.motivationScreen);
               }),
               const SizedBox(height: 20,),
               const Text(
@@ -151,7 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12,),
               buildButtonTile(Icons.air, "Breathe to Reset", () {
-                Navigator.pushNamed(context, RoutesName.productScreen);
+                Navigator.pushNamed(context, RoutesName.healthTipsDetailScreen);
               }),
             ],
           ),

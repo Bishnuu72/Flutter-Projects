@@ -5,6 +5,10 @@ import 'package:manshi/screens/admin_screens/category_screen.dart';
 import 'package:manshi/screens/admin_screens/health_tips_screen.dart';
 import 'package:manshi/screens/admin_screens/quote_screen.dart';
 import 'package:manshi/screens/admin_screens/user_list_screen.dart';
+import 'package:manshi/screens/admin_screens/category_list_screen.dart';
+import 'package:manshi/screens/admin_screens/quote_list_screen.dart';
+import 'package:manshi/screens/admin_screens/health_tip_list_screen.dart';
+import 'package:manshi/screens/admin_screens/admin_init_screen.dart';
 import 'package:manshi/screens/auth_screens/change_password_screen.dart';
 import 'package:manshi/screens/auth_screens/forgot_password_screen.dart';
 import 'package:manshi/screens/dashboard_screen.dart';
@@ -14,6 +18,10 @@ import 'package:manshi/screens/product/product_screen.dart';
 import 'package:manshi/screens/profile_screen.dart';
 import 'package:manshi/screens/quotes_detail_screen.dart';
 import 'package:manshi/screens/register_screen.dart';
+import 'package:manshi/screens/favorites_screen.dart';
+import 'package:manshi/screens/motivation_screen.dart';
+import 'package:manshi/screens/health_tips_detail_screen.dart';
+import 'package:manshi/screens/reminder_screen.dart';
 
 class RouteConfig {
   RouteConfig._();
@@ -64,6 +72,30 @@ class RouteConfig {
 
       case RoutesName.userListScreen:
         return MaterialPageRoute(builder: (_) => const UserListScreen());
+
+      case RoutesName.favoritesScreen:
+        return MaterialPageRoute(builder: (_) => const FavoritesScreen());
+
+      case RoutesName.motivationScreen:
+        return MaterialPageRoute(builder: (_) => const MotivationScreen());
+
+      case RoutesName.healthTipsDetailScreen:
+        return MaterialPageRoute(builder: (_) => const HealthTipsDetailScreen());
+
+      case RoutesName.categoryListScreen:
+        return MaterialPageRoute(builder: (_) => const CategoryListScreen());
+
+      case RoutesName.quoteListScreen:
+        return MaterialPageRoute(builder: (_) => const QuoteListScreen());
+
+      case RoutesName.healthTipListScreen:
+        return MaterialPageRoute(builder: (_) => const HealthTipListScreen());
+
+      case RoutesName.adminInitScreen:
+        return MaterialPageRoute(builder: (_) => const AdminInitScreen());
+
+      case RoutesName.reminderScreen:
+        return MaterialPageRoute(builder: (_) => const ReminderScreen());
 
       case RoutesName.defaultScreen:
       default:

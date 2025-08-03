@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
+import 'package:manshi/services/firestore_service.dart';
+import 'package:manshi/models/preference_model.dart';
+import 'package:manshi/utils/debug_utils.dart';
 
 class PreferenceSelection extends StatefulWidget {
   const PreferenceSelection({super.key});
@@ -12,23 +15,38 @@ class PreferenceSelection extends StatefulWidget {
 }
 
 class _PreferenceSelectionState extends State<PreferenceSelection> {
-  final List<String> topics = [
-    "Hard Times",
-    "Working out",
-    "Productivity",
-    "Self-esteem",
-    "Achieving goals",
-    "Inspiration",
-    "Letting go",
-    "Love",
-    "Relationships",
-    "Faith & Spirituality",
-    "Positive thinking",
-    "Stress & Anxiety",
-  ];
-
-  final Set<String> selectedTopics = {};
+  List<PreferenceModel> preferences = [];
+  final Set<String> selectedPreferences = {};
+  bool isLoading = true;
   bool isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadPreferences();
+  }
+
+  Future<void> loadPreferences() async {
+    try {
+      print('Loading preferences...');
+      final allPreferences = await FirestoreService.getAllPreferences();
+      print('Loaded ${allPreferences.length} preferences');
+      setState(() {
+        preferences = allPreferences;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading preferences: $e');
+      setState(() {
+        isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load preferences: $e')),
+        );
+      }
+    }
+  }
 
   Future<void> savePreferences() async {
     setState(() {
@@ -37,15 +55,13 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
 
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'preferences': selectedTopics.toList(),
-      });
+      await FirestoreService.updateUserPreferences(uid, selectedPreferences.toList());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Preferences saved successfully')),
         );
-        Navigator.pushNamed(context, RoutesName.dashboardScreen);
+        Navigator.pushReplacementNamed(context, RoutesName.dashboardScreen);
       }
     } catch (e) {
       if (mounted) {
@@ -94,47 +110,70 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
               ),
               const SizedBox(height: 30),
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 3,
-                  children: topics.map((topic) {
-                    final isSelected = selectedTopics.contains(topic);
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (isSelected) {
-                            selectedTopics.remove(topic);
-                          } else {
-                            selectedTopics.add(topic);
-                          }
-                        });
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.white : Colors.grey[900],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          topic,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isSelected ? Colors.black : Colors.white,
-                            fontWeight: FontWeight.w500,
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : preferences.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No preferences available',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          )
+                        : GridView.count(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 3,
+                            children: preferences.map((preference) {
+                              final isSelected = selectedPreferences.contains(preference.id);
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    if (isSelected) {
+                                      selectedPreferences.remove(preference.id);
+                                    } else {
+                                      selectedPreferences.add(preference.id);
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? Colors.white : Colors.grey[900],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    preference.name,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: isSelected ? Colors.black : Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
               ),
               const SizedBox(height: 30),
+              // Debug button
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => DebugUtils.debugFirebaseConnection(context),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey[400],
+                  ),
+                  child: const Text("Debug Firebase Connection"),
+                ),
+              ),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: selectedTopics.isNotEmpty && !isSaving
+                  onPressed: selectedPreferences.isNotEmpty && !isSaving
                       ? savePreferences
                       : null,
                   style: ElevatedButton.styleFrom(

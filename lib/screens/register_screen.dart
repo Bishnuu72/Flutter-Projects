@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/firebase_auth/auth_service.dart';
+import 'package:manshi/firebase_auth/fcm_services.dart';
+import 'package:manshi/services/firestore_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -24,9 +26,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FCMServices _fcmServices = FCMServices();
 
   final RegExp _passwordRegExp = RegExp(
       r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+
+  Future<void> _updateFCMToken(String userId) async {
+    try {
+      final fcmToken = await _fcmServices.getFCMToken();
+      if (fcmToken != null) {
+        await FirestoreService.updateUserFCMToken(userId, fcmToken);
+      }
+    } catch (e) {
+      print('Error updating FCM token: $e');
+    }
+  }
 
   Future<void> _registerUser() async {
     setState(() => isLoading = true);
@@ -60,10 +74,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       await userCredential.user!.updateDisplayName(name);
 
+      // Get FCM token for the new user
+      final fcmToken = await _fcmServices.getFCMToken();
+
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'name': name,
         'email': email,
-        'role': 'user', // ✅ Added role field
+        'role': 'user',
+        'preferences': [],
+        'favoriteQuotes': [],
+        'fcmToken': fcmToken,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
