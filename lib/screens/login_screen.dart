@@ -51,6 +51,34 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _navigateAfterLogin(User user) async {
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
+    final userData = userDoc.data();
+
+    if (userData == null) {
+      _showDialog("Error", "User data not found", DialogType.error);
+      return;
+    }
+
+    final role = userData['role'] ?? 'user';
+    final preferences = userData['preferences'] ?? [];
+
+    if (role == 'admin') {
+      final categoriesSnapshot = await _firestore.collection('categories').get();
+      if (categoriesSnapshot.docs.isEmpty) {
+        Navigator.pushReplacementNamed(context, RoutesName.adminInitScreen);
+      } else {
+        Navigator.pushReplacementNamed(context, RoutesName.adminDashboardScreen);
+      }
+    } else {
+      if (preferences.isEmpty) {
+        Navigator.pushReplacementNamed(context, RoutesName.preferenceSelection);
+      } else {
+        Navigator.pushReplacementNamed(context, RoutesName.dashboardScreen);
+      }
+    }
+  }
+
   Future<void> _loginWithEmailPassword() async {
     if (_emailController.text.trim().isEmpty) {
       _showDialog("Error", "Email is required", DialogType.error);
@@ -73,31 +101,12 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      // Update FCM token after successful login
       await _updateFCMToken(userCredential.user!.uid);
 
-      final userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
-
-      if (userDoc.exists) {
-        final role = userDoc.data()!['role'] ?? 'user';
-
-        if (!mounted) return;
-        _showDialog("Success", "Login Successful!", DialogType.success, onOk: () async {
-          if (role == 'admin') {
-            // Check if database has any data
-            final categoriesSnapshot = await _firestore.collection('categories').get();
-            if (categoriesSnapshot.docs.isEmpty) {
-              Navigator.pushReplacementNamed(context, RoutesName.adminInitScreen);
-            } else {
-              Navigator.pushReplacementNamed(context, RoutesName.adminDashboardScreen);
-            }
-          } else {
-            Navigator.pushReplacementNamed(context, RoutesName.preferenceSelection);
-          }
-        });
-      } else {
-        _showDialog("Error", "User data not found", DialogType.error);
-      }
+      if (!mounted) return;
+      _showDialog("Success", "Login Successful!", DialogType.success, onOk: () async {
+        await _navigateAfterLogin(userCredential.user!);
+      });
     } on FirebaseAuthException catch (e) {
       _showDialog("Error", e.message ?? "Login failed", DialogType.error);
     } catch (_) {
@@ -125,39 +134,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // Update FCM token after successful login
       await _updateFCMToken(userCredential.user!.uid);
 
       final userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
-
       if (!userDoc.exists) {
-        // If first time Google sign-in, add user with default role 'user'
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'name': userCredential.user!.displayName ?? '',
           'email': userCredential.user!.email ?? '',
           'role': 'user',
           'preferences': [],
           'favoriteQuotes': [],
+          'fcmToken': await _fcmServices.getFCMToken(),
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
 
-      final fetchedUser = await _firestore.collection('users').doc(userCredential.user!.uid).get();
-      final role = fetchedUser.data()!['role'] ?? 'user';
-
       if (!mounted) return;
       _showDialog("Success", "Google Sign-in Successful!", DialogType.success, onOk: () async {
-        if (role == 'admin') {
-          // Check if database has any data
-          final categoriesSnapshot = await _firestore.collection('categories').get();
-          if (categoriesSnapshot.docs.isEmpty) {
-            Navigator.pushReplacementNamed(context, RoutesName.adminInitScreen);
-          } else {
-            Navigator.pushReplacementNamed(context, RoutesName.adminDashboardScreen);
-          }
-        } else {
-          Navigator.pushReplacementNamed(context, RoutesName.preferenceSelection);
-        }
+        await _navigateAfterLogin(userCredential.user!);
       });
     } on FirebaseAuthException catch (e) {
       _showDialog("Error", e.message ?? 'Google login failed', DialogType.error);
@@ -221,10 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
               _loginButton(),
               const SizedBox(height: 20),
               const Center(
-                child: Text(
-                  "Or",
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                ),
+                child: Text("Or", style: TextStyle(color: Colors.white, fontSize: 16)),
               ),
               _googleSignInButton(),
               _registerRedirect(),
@@ -294,10 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onPressed: isEmailLoading ? null : _loginWithEmailPassword,
         child: isEmailLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-          "Login",
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+            : const Text("Login", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -346,7 +334,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _debugButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: TextButton(
         onPressed: () => DebugUtils.debugFirebaseConnection(context),

@@ -17,6 +17,7 @@ class HealthTipModel {
     required this.createdAt,
   });
 
+  /// Factory method to create HealthTipModel from Firestore Map
   factory HealthTipModel.fromMap(String id, Map<String, dynamic> map) {
     return HealthTipModel(
       id: id,
@@ -28,16 +29,18 @@ class HealthTipModel {
     );
   }
 
+  /// Convert model to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'title': title,
       'content': content,
       'categoryId': categoryId,
       'preferenceId': preferenceId,
-      'createdAt': createdAt,
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
+  /// Clone the model with optional updated fields
   HealthTipModel copyWith({
     String? id,
     String? title,

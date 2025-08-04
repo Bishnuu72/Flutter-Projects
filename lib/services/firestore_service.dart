@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/user_model.dart';
 import '../models/category_model.dart';
 import '../models/preference_model.dart';
@@ -11,7 +12,7 @@ class FirestoreService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // User operations
+  // ---------------------- User ----------------------
   static Future<void> createUser(UserModel user) async {
     await _firestore.collection('users').doc(user.id).set(user.toMap());
   }
@@ -22,9 +23,7 @@ class FirestoreService {
 
   static Future<UserModel?> getUser(String userId) async {
     final doc = await _firestore.collection('users').doc(userId).get();
-    if (doc.exists) {
-      return UserModel.fromMap(doc.id, doc.data()!);
-    }
+    if (doc.exists) return UserModel.fromMap(doc.id, doc.data()!);
     return null;
   }
 
@@ -47,14 +46,11 @@ class FirestoreService {
         .where('preferences', arrayContainsAny: preferences)
         .get();
 
-    List<String> tokens = [];
-    for (var doc in snapshot.docs) {
-      final fcmToken = doc.data()['fcmToken'];
-      if (fcmToken != null && fcmToken.isNotEmpty) {
-        tokens.add(fcmToken);
-      }
-    }
-    return tokens;
+    return snapshot.docs
+        .map((doc) => doc.data()['fcmToken'])
+        .where((token) => token != null && token.isNotEmpty)
+        .cast<String>()
+        .toList();
   }
 
   static Future<List<String>> getFCMTokensByUserIds(List<String> userIds) async {
@@ -65,33 +61,30 @@ class FirestoreService {
         .where(FieldPath.documentId, whereIn: userIds)
         .get();
 
-    List<String> tokens = [];
-    for (var doc in snapshot.docs) {
-      final fcmToken = doc.data()['fcmToken'];
-      if (fcmToken != null && fcmToken.isNotEmpty) {
-        tokens.add(fcmToken);
-      }
-    }
-    return tokens;
+    return snapshot.docs
+        .map((doc) => doc.data()['fcmToken'])
+        .where((token) => token != null && token.isNotEmpty)
+        .cast<String>()
+        .toList();
   }
 
   static Future<void> toggleFavoriteQuote(String userId, String quoteId) async {
     final userDoc = await _firestore.collection('users').doc(userId).get();
-    if (userDoc.exists) {
-      final user = UserModel.fromMap(userDoc.id, userDoc.data()!);
-      final favoriteQuotes = List<String>.from(user.favoriteQuotes);
+    if (!userDoc.exists) return;
 
-      if (favoriteQuotes.contains(quoteId)) {
-        favoriteQuotes.remove(quoteId);
-      } else {
-        favoriteQuotes.add(quoteId);
-      }
+    final user = UserModel.fromMap(userDoc.id, userDoc.data()!);
+    final favoriteQuotes = List<String>.from(user.favoriteQuotes);
 
-      await _firestore.collection('users').doc(userId).update({'favoriteQuotes': favoriteQuotes});
+    if (favoriteQuotes.contains(quoteId)) {
+      favoriteQuotes.remove(quoteId);
+    } else {
+      favoriteQuotes.add(quoteId);
     }
+
+    await _firestore.collection('users').doc(userId).update({'favoriteQuotes': favoriteQuotes});
   }
 
-  // Reminder operations
+  // ---------------------- Reminder ----------------------
   static Future<List<ReminderModel>> getUserReminders(String userId) async {
     final snapshot = await _firestore
         .collection('reminders')
@@ -119,9 +112,25 @@ class FirestoreService {
     });
   }
 
-  // Category operations
+  // ---------------------- Categories ----------------------
   static Future<List<CategoryModel>> getCategories() async {
     final snapshot = await _firestore.collection('categories').get();
+    return snapshot.docs.map((doc) => CategoryModel.fromMap(doc.id, doc.data())).toList();
+  }
+
+  static Future<List<CategoryModel>> getQuoteCategories() async {
+    final snapshot = await _firestore
+        .collection('categories')
+        .where('type', isEqualTo: 'Quotes')
+        .get();
+    return snapshot.docs.map((doc) => CategoryModel.fromMap(doc.id, doc.data())).toList();
+  }
+
+  static Future<List<CategoryModel>> getHealthCategories() async {
+    final snapshot = await _firestore
+        .collection('categories')
+        .where('type', isEqualTo: 'Health')
+        .get();
     return snapshot.docs.map((doc) => CategoryModel.fromMap(doc.id, doc.data())).toList();
   }
 
@@ -137,7 +146,7 @@ class FirestoreService {
     await _firestore.collection('categories').doc(categoryId).delete();
   }
 
-  // Preference operations
+  // ---------------------- Preferences ----------------------
   static Future<List<PreferenceModel>> getPreferencesByCategory(String categoryId) async {
     final snapshot = await _firestore
         .collection('preferences')
@@ -163,7 +172,7 @@ class FirestoreService {
     await _firestore.collection('preferences').doc(preferenceId).delete();
   }
 
-  // Quote operations
+  // ---------------------- Quotes ----------------------
   static Future<List<QuoteModel>> getQuotes() async {
     final snapshot = await _firestore.collection('quotes').get();
     return snapshot.docs.map((doc) => QuoteModel.fromMap(doc.id, doc.data())).toList();
@@ -173,6 +182,14 @@ class FirestoreService {
     final snapshot = await _firestore
         .collection('quotes')
         .where('preferences', arrayContainsAny: preferences)
+        .get();
+    return snapshot.docs.map((doc) => QuoteModel.fromMap(doc.id, doc.data())).toList();
+  }
+
+  static Future<List<QuoteModel>> getQuotesByCategory(String categoryName) async {
+    final snapshot = await _firestore
+        .collection('quotes')
+        .where('categories', arrayContains: categoryName) // ✅ CORRECTED FIELD HERE
         .get();
     return snapshot.docs.map((doc) => QuoteModel.fromMap(doc.id, doc.data())).toList();
   }
@@ -201,13 +218,7 @@ class FirestoreService {
     await _firestore.collection('quotes').doc(quoteId).delete();
   }
 
-  // Health Tip operations
-  static Future<HealthTipModel> createHealthTip(HealthTipModel healthTip) async {
-    final docRef = await _firestore.collection('healthTips').add(healthTip.toMap());
-    // Return a new HealthTipModel including the generated doc ID
-    return healthTip.copyWith(id: docRef.id);
-  }
-
+  // ---------------------- Health Tips ----------------------
   static Future<List<HealthTipModel>> getHealthTips() async {
     final snapshot = await _firestore.collection('healthTips').get();
     return snapshot.docs.map((doc) => HealthTipModel.fromMap(doc.id, doc.data())).toList();
@@ -229,6 +240,11 @@ class FirestoreService {
     return snapshot.docs.map((doc) => HealthTipModel.fromMap(doc.id, doc.data())).toList();
   }
 
+  static Future<HealthTipModel> createHealthTip(HealthTipModel healthTip) async {
+    final docRef = await _firestore.collection('healthTips').add(healthTip.toMap());
+    return healthTip.copyWith(id: docRef.id);
+  }
+
   static Future<void> updateHealthTip(String healthTipId, Map<String, dynamic> data) async {
     await _firestore.collection('healthTips').doc(healthTipId).update(data);
   }
@@ -237,12 +253,11 @@ class FirestoreService {
     await _firestore.collection('healthTips').doc(healthTipId).delete();
   }
 
-  // Get current user
+  // ---------------------- Auth / Role ----------------------
   static User? getCurrentUser() {
     return _auth.currentUser;
   }
 
-  // Check if user is admin
   static Future<bool> isUserAdmin(String userId) async {
     final user = await getUser(userId);
     return user?.role == 'admin';

@@ -9,6 +9,7 @@ class UserModel {
   final List<String> favoriteQuotes;
   final DateTime createdAt;
   final String? fcmToken;
+  final String? profileImage;
 
   UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel {
     required this.favoriteQuotes,
     required this.createdAt,
     this.fcmToken,
+    this.profileImage,
   });
 
   factory UserModel.fromMap(String id, Map<String, dynamic> map) {
@@ -31,6 +33,7 @@ class UserModel {
       favoriteQuotes: List<String>.from(map['favoriteQuotes'] ?? []),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       fcmToken: map['fcmToken'],
+      profileImage: map['profileImage'],
     );
   }
 
@@ -43,6 +46,7 @@ class UserModel {
       'favoriteQuotes': favoriteQuotes,
       'createdAt': createdAt,
       'fcmToken': fcmToken,
+      'profileImage': profileImage,
     };
   }
 
@@ -55,6 +59,7 @@ class UserModel {
     List<String>? favoriteQuotes,
     DateTime? createdAt,
     String? fcmToken,
+    String? profileImage,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -65,6 +70,16 @@ class UserModel {
       favoriteQuotes: favoriteQuotes ?? this.favoriteQuotes,
       createdAt: createdAt ?? this.createdAt,
       fcmToken: fcmToken ?? this.fcmToken,
+      profileImage: profileImage ?? this.profileImage,
     );
   }
-} 
+
+  // Add this toggle method to update favoriteQuotes list locally
+  void toggleFavorite(String quoteId) {
+    if (favoriteQuotes.contains(quoteId)) {
+      favoriteQuotes.remove(quoteId);
+    } else {
+      favoriteQuotes.add(quoteId);
+    }
+  }
+}
