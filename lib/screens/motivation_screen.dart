@@ -27,7 +27,7 @@ class _MotivationScreenState extends State<MotivationScreen> {
     // Read navigation arguments only once
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
-      selectedCategoryName = args['categoryId'] as String?;
+      selectedCategoryName = args['categoryName'] as String?;
     }
 
     loadQuotes();

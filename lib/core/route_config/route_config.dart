@@ -14,6 +14,7 @@ import 'package:manshi/screens/auth_screens/forgot_password_screen.dart';
 import 'package:manshi/screens/dashboard_screen.dart';
 import 'package:manshi/screens/login_screen.dart';
 import 'package:manshi/screens/preference_selection.dart';
+import 'package:manshi/screens/product/notification_screen.dart';
 import 'package:manshi/screens/product/product_screen.dart';
 import 'package:manshi/screens/profile_screen.dart';
 import 'package:manshi/screens/quotes_detail_screen.dart';
@@ -96,6 +97,9 @@ class RouteConfig {
 
       case RoutesName.reminderScreen:
         return MaterialPageRoute(builder: (_) => const ReminderScreen());
+
+      case RoutesName.notificationScreen:
+        return MaterialPageRoute(builder: (_) => const NotificationScreen());
 
       case RoutesName.defaultScreen:
       default:

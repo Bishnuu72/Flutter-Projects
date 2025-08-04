@@ -84,6 +84,16 @@ class FirestoreService {
     await _firestore.collection('users').doc(userId).update({'favoriteQuotes': favoriteQuotes});
   }
 
+  static Future<bool> hasUnreadNotificationsForUser(String userId) async {
+    final snapshot = await _firestore
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .where('isRead', isEqualTo: false)
+        .limit(1)
+        .get();
+    return snapshot.docs.isNotEmpty;
+  }
+
   // ---------------------- Reminder ----------------------
   static Future<List<ReminderModel>> getUserReminders(String userId) async {
     final snapshot = await _firestore
@@ -189,7 +199,7 @@ class FirestoreService {
   static Future<List<QuoteModel>> getQuotesByCategory(String categoryName) async {
     final snapshot = await _firestore
         .collection('quotes')
-        .where('categories', arrayContains: categoryName) // ✅ CORRECTED FIELD HERE
+        .where('categories', arrayContains: categoryName)
         .get();
     return snapshot.docs.map((doc) => QuoteModel.fromMap(doc.id, doc.data())).toList();
   }

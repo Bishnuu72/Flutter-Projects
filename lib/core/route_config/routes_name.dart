@@ -27,4 +27,5 @@ class RoutesName {
   static const String preferenceListScreen = '/preference_list_screen';
   static const String adminInitScreen = '/admin_init_screen';
   static const String reminderScreen = '/reminder_screen';
+  static const String notificationScreen = '/notification_screen';
 }

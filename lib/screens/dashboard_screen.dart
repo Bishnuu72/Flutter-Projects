@@ -19,6 +19,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? currentUser;
   bool isLoading = true;
 
+  // Notification state
+  bool hasUnreadNotifications = false;
+
   // Quotes
   List<CategoryModel> quoteCategories = [];
   String? selectedQuoteCategoryId;
@@ -33,6 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     loadDashboardData();
+    checkUnreadNotifications();
   }
 
   Future<void> loadDashboardData() async {
@@ -64,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     } catch (e) {
-      // Handle or log error
+      debugPrint("Error loading dashboard data: $e");
     } finally {
       setState(() {
         isLoading = false;
@@ -72,8 +76,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // We don't need loadQuotesByCategory and loadHealthTipsByCategory here
-  // because navigation will happen instead of loading data on this screen.
+  Future<void> checkUnreadNotifications() async {
+    // TODO: Implement your actual logic to check unread notifications,
+    // for example, query Firestore or listen to notifications collection
+    // This example simulates a delay and sets unread = true
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() {
+      hasUnreadNotifications = true; // set to false when no unread notifications
+    });
+  }
 
   Widget buildCategoryChips(
       List<CategoryModel> categories,
@@ -219,6 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Top bar with title, notifications icon + badge, and profile avatar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -230,28 +242,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, RoutesName.profileScreen);
-                    },
-                    child: currentUser?.profileImage != null
-                        ? CircleAvatar(
-                      radius: 25,
-                      backgroundImage: NetworkImage(currentUser!.profileImage!),
-                    )
-                        : CircleAvatar(
-                      radius: 25,
-                      backgroundColor: Colors.white,
-                      child: Text(
-                        currentUser?.name.isNotEmpty == true
-                            ? currentUser!.name[0].toUpperCase()
-                            : "?",
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Stack(
+                          children: [
+                            const Icon(Icons.notifications, size: 28, color: Colors.white),
+                            if (hasUnreadNotifications)
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '!',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(context, RoutesName.notificationScreen);
+                        },
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, RoutesName.profileScreen);
+                        },
+                        child: currentUser?.profileImage != null
+                            ? CircleAvatar(
+                          radius: 25,
+                          backgroundImage: NetworkImage(currentUser!.profileImage!),
+                        )
+                            : CircleAvatar(
+                          radius: 25,
+                          backgroundColor: Colors.white,
+                          child: Text(
+                            currentUser?.name.isNotEmpty == true
+                                ? currentUser!.name[0].toUpperCase()
+                                : "?",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   )
                 ],
               ),
