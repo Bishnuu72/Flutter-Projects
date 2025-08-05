@@ -77,50 +77,123 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> checkUnreadNotifications() async {
-    // TODO: Implement your actual logic to check unread notifications,
-    // for example, query Firestore or listen to notifications collection
-    // This example simulates a delay and sets unread = true
     await Future.delayed(const Duration(seconds: 1));
     setState(() {
-      hasUnreadNotifications = true; // set to false when no unread notifications
+      hasUnreadNotifications = true;
     });
   }
 
-  Widget buildCategoryChips(
+  /// Build a horizontal scroll list for quote categories
+  Widget buildQuoteCategoryHorizontalList(
+      List<CategoryModel> categories, String categoryType, BuildContext context) {
+    return SizedBox(
+      height: 160, // height of each category card
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                RoutesName.motivationScreen,
+                arguments: {
+                  'categoryName': category.name,
+                  'categoryType': categoryType,
+                },
+              );
+            },
+            child: Container(
+              width: 140,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                image: DecorationImage(
+                  image: NetworkImage(category.imageUrl ?? ''),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.black.withOpacity(0.5),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  category.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildCategoryGrid(
       List<CategoryModel> categories,
-      String? selectedId,
       String categoryType, // 'quote' or 'health'
       BuildContext context,
       ) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: categories.map((category) {
-          final isSelected = category.id == selectedId;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ChoiceChip(
-              label: Text(
-                category.name,
-                style: TextStyle(color: isSelected ? Colors.black : Colors.white),
-              ),
-              selected: isSelected,
-              selectedColor: Colors.white,
-              backgroundColor: Colors.grey[850],
-              onSelected: (_) {
-                Navigator.pushNamed(
-                  context,
-                  RoutesName.motivationScreen,
-                  arguments: {
-                    'categoryName': category.name,
-                    'categoryType': categoryType,
-                  },
-                );
-              },
-            ),
-          );
-        }).toList(),
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: categories.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.2,
       ),
+      itemBuilder: (context, index) {
+        final category = categories[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              RoutesName.motivationScreen,
+              arguments: {
+                'categoryName': category.name,
+                'categoryType': categoryType,
+              },
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              image: DecorationImage(
+                image: NetworkImage(category.imageUrl ?? ''),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.black.withOpacity(0.5),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                category.name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -230,7 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top bar with title, notifications icon + badge, and profile avatar
+              // Top bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -309,7 +382,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   )
                 ],
               ),
-
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -409,14 +481,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              buildCategoryChips(quoteCategories, selectedQuoteCategoryId, 'quote', context),
+
+              // Changed to horizontal scroll
+              buildQuoteCategoryHorizontalList(quoteCategories, 'quote', context),
+
               const SizedBox(height: 20),
               const Text(
                 "Health Tips",
                 style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              buildCategoryChips(healthCategories, selectedHealthCategoryId, 'health', context),
+          buildQuoteCategoryHorizontalList(healthCategories, 'health', context),
             ],
           ),
         ),

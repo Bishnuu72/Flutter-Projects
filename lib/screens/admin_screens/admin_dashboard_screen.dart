@@ -26,7 +26,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Future<void> _loadCounts() async {
     try {
-      final users = await getUserCount();
+      final users = await getCollectionCount('users'); //getUserCount -> to show only users count
       final categories = await getCollectionCount('categories');
       final quotes = await getCollectionCount('quotes');
       final tips = await getCollectionCount('healthTips');
@@ -44,7 +44,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
-  Future<int> getUserCount() async {
+  Future<int> getUserCount(String users) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
