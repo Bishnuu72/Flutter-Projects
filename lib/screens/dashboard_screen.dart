@@ -19,15 +19,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   UserModel? currentUser;
   bool isLoading = true;
 
-  // Notification state
   bool hasUnreadNotifications = false;
 
-  // Quotes
   List<CategoryModel> quoteCategories = [];
   String? selectedQuoteCategoryId;
   List<QuoteModel> categoryQuotes = [];
 
-  // Health Tips
   List<CategoryModel> healthCategories = [];
   String? selectedHealthCategoryId;
   List<HealthTipModel> categoryHealthTips = [];
@@ -83,11 +80,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  /// Build a horizontal scroll list for quote categories
   Widget buildQuoteCategoryHorizontalList(
-      List<CategoryModel> categories, String categoryType, BuildContext context) {
+      List<CategoryModel> categories,
+      String categoryType,
+      BuildContext context,
+      ) {
     return SizedBox(
-      height: 160, // height of each category card
+      height: 160,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
@@ -139,160 +138,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget buildCategoryGrid(
-      List<CategoryModel> categories,
-      String categoryType, // 'quote' or 'health'
-      BuildContext context,
-      ) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: categories.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.2,
-      ),
-      itemBuilder: (context, index) {
-        final category = categories[index];
-        return GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              RoutesName.motivationScreen,
-              arguments: {
-                'categoryName': category.name,
-                'categoryType': categoryType,
-              },
-            );
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              image: DecorationImage(
-                image: NetworkImage(category.imageUrl ?? ''),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.black.withOpacity(0.5),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                category.name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget buildQuoteList(List<QuoteModel> list) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
-    }
-
-    if (list.isEmpty) {
-      return const Text(
-        "No data found in this category.",
-        style: TextStyle(color: Colors.white70),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: list.map((item) {
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[850],
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '"${item.text}"',
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "- ${item.author}",
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                ),
-              )
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget buildHealthTipList(List<HealthTipModel> list) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
-    }
-
-    if (list.isEmpty) {
-      return const Text(
-        "No data found in this category.",
-        style: TextStyle(color: Colors.white70),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: list.map((item) {
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[850],
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                item.content,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                ),
-              )
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -303,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top bar
+              // Top Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -481,17 +326,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-
-              // Changed to horizontal scroll
               buildQuoteCategoryHorizontalList(quoteCategories, 'quote', context),
-
               const SizedBox(height: 20),
               const Text(
                 "Health Tips",
                 style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-          buildQuoteCategoryHorizontalList(healthCategories, 'health', context),
+              buildQuoteCategoryHorizontalList(healthCategories, 'health', context),
             ],
           ),
         ),
