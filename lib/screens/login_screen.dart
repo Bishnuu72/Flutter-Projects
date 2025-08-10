@@ -310,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
               color: Colors.white,
             ),
             const SizedBox(width: 8),
-            const Text("Googleee", style: TextStyle(color: Colors.white, fontSize: 18)),
+            const Text("Google", style: TextStyle(color: Colors.white, fontSize: 18)),
           ],
         ),
       ),
