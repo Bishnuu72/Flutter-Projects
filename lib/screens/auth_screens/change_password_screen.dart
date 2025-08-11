@@ -1,6 +1,8 @@
+import 'dart:ui';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -74,51 +76,140 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Change Password',
-          style: TextStyle(color: Colors.white),
-        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 35.0, vertical: 20),
-        child: ListView(
-          children: [
-            const SizedBox(height: 30),
-            _passwordField('Enter current password', _currentPassController, isCurrentVisible, () {
-              setState(() => isCurrentVisible = !isCurrentVisible);
-            }),
-            const SizedBox(height: 30),
-            _passwordField('Enter new password', _newPassController, isNewVisible, () {
-              setState(() => isNewVisible = !isNewVisible);
-            }),
-            const SizedBox(height: 30),
-            _passwordField('Confirm new password', _confirmNewPassController, isConfirmVisible, () {
-              setState(() => isConfirmVisible = !isConfirmVisible);
-            }),
-            const SizedBox(height: 30),
-            Container(
-              decoration: BoxDecoration(color: Colors.grey[900], borderRadius: BorderRadius.circular(10)),
-              height: 50,
-              child: TextButton(
-                onPressed: isLoading ? null : _changePassword,
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                  "Update Password",
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            'Change Password',
+            style: TextStyle(color: Colors.white),
+          ),
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+        ),
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF121212), Color(0xFF1E1E1E)],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -80,
+                right: -60,
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Color(0xFF7B61FF).withOpacity(0.5),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+              SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 100),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(25),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          padding: const EdgeInsets.all(30),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                "Change Password",
+                                style: TextStyle(
+                                  fontSize: 33,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black87,
+                                      blurRadius: 4,
+                                      offset: Offset(1, 2),
+                                    ),
+                                  ],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 40),
+
+                              _passwordField('Enter current password', _currentPassController, isCurrentVisible, () {
+                                setState(() => isCurrentVisible = !isCurrentVisible);
+                              }),
+                              const SizedBox(height: 30),
+
+                              _passwordField('Enter new password', _newPassController, isNewVisible, () {
+                                setState(() => isNewVisible = !isNewVisible);
+                              }),
+                              const SizedBox(height: 30),
+
+                              _passwordField('Confirm new password', _confirmNewPassController, isConfirmVisible, () {
+                                setState(() => isConfirmVisible = !isConfirmVisible);
+                              }),
+                              const SizedBox(height: 30),
+
+                              Container(
+                                width: double.infinity,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: TextButton(
+                                  onPressed: isLoading ? null : _changePassword,
+                                  child: isLoading
+                                      ? const CircularProgressIndicator(color: Colors.white)
+                                      : const Text(
+                                    "Update Password",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -146,10 +237,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
           ),
         ),
-        fillColor: Colors.grey[900],
         filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
         hintText: hintText,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        hintStyle: const TextStyle(color: Colors.white54),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
       ),
     );
   }

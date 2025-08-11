@@ -129,12 +129,11 @@ class _RegisterScreenState extends State<RegisterScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAE6F8), Color(0xFFF7F7F7)],
+            colors: [Colors.black, Colors.black87],
           ),
         ),
         child: Stack(
           children: [
-            // Faded Circle Decoration (Top)
             Positioned(
               top: -80,
               right: -60,
@@ -145,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Color(0xFFCEB5FF).withOpacity(0.5),
+                      Colors.deepPurple.withOpacity(0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -153,106 +152,107 @@ class _RegisterScreenState extends State<RegisterScreen>
               ),
             ),
 
-            // Glass Header
-            AnimatedOpacity(
-              opacity: animate ? 1 : 0,
-              duration: const Duration(milliseconds: 1000),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 34, top: 85, right: 20),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+            // Wrap this whole Column inside SingleChildScrollView
+            SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 80),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnimatedOpacity(
+                    opacity: animate ? 1 : 0,
+                    duration: const Duration(milliseconds: 1000),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4, right: 20, bottom: 30),
+                      child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: const Text(
-                        "Start your wellness\njourney today.",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                          height: 1.3,
-                          shadows: [
-                            Shadow(
-                                color: Colors.black12,
-                                blurRadius: 2,
-                                offset: Offset(1, 2))
-                          ],
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(color: Colors.white12),
+                            ),
+                            child: const Text(
+                              "Start your wellness\njourney today.",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                height: 1.3,
+                                shadows: [
+                                  Shadow(
+                                      color: Colors.black87,
+                                      blurRadius: 2,
+                                      offset: Offset(1, 2))
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ),
 
-            // Form container with animation
-            Center(
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 1000),
-                opacity: animate ? 1 : 0,
-                child: SingleChildScrollView(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 30, vertical: 200),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(25),
-                          border:
-                          Border.all(color: Colors.white.withOpacity(0.2)),
-                        ),
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildInputField(_nameController,
-                                'Enter your name', 'user.svg'),
-                            const SizedBox(height: 20),
-                            _buildInputField(_emailController,
-                                'Enter your email', 'email.svg'),
-                            const SizedBox(height: 20),
-                            _buildPasswordField(),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: isChecked,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isChecked = value!;
-                                    });
-                                  },
-                                  checkColor: Colors.white,
-                                  activeColor: Colors.green.shade800,
-                                ),
-                                const Text("Remember me",
-                                    style: TextStyle(color: Colors.black)),
-                              ],
-                            ),
-                            _submitButton(),
-                            const SizedBox(height: 10),
-                            const Center(
-                              child: Text("Or",
-                                  style: TextStyle(
-                                      color: Colors.black54, fontSize: 16)),
-                            ),
-                            _googleSignInButton(),
-                            _loginRedirect()
-                          ],
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 1000),
+                    opacity: animate ? 1 : 0,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(25),
+                            border:
+                            Border.all(color: Colors.white.withOpacity(0.15)),
+                          ),
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildInputField(
+                                  _nameController, 'Enter your name', 'user.svg'),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                  _emailController, 'Enter your email', 'email.svg'),
+                              const SizedBox(height: 20),
+                              _buildPasswordField(),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: isChecked,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        isChecked = value!;
+                                      });
+                                    },
+                                    checkColor: Colors.black,
+                                    activeColor: Colors.green.shade600,
+                                  ),
+                                  const Text("Remember me",
+                                      style: TextStyle(color: Colors.white)),
+                                ],
+                              ),
+                              _submitButton(),
+                              const SizedBox(height: 10),
+                              const Center(
+                                child: Text("Or",
+                                    style: TextStyle(
+                                        color: Colors.white54, fontSize: 16)),
+                              ),
+                              _googleSignInButton(),
+                              _loginRedirect()
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -265,7 +265,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       TextEditingController controller, String hint, String icon) {
     return TextField(
       controller: controller,
-      style: const TextStyle(color: Colors.black),
+      style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         prefixIcon: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -273,16 +273,24 @@ class _RegisterScreenState extends State<RegisterScreen>
             'assets/icon/$icon',
             width: 20,
             height: 20,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.black45),
+        hintStyle: const TextStyle(color: Colors.white70),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.2),
+        fillColor: Colors.white.withOpacity(0.1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
         ),
       ),
     );
@@ -292,7 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     return TextField(
       controller: _passwordController,
       obscureText: !isPasswordVisible,
-      style: const TextStyle(color: Colors.black),
+      style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         prefixIcon: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -300,7 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             'assets/icon/password.svg',
             width: 20,
             height: 20,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
         suffixIcon: GestureDetector(
@@ -317,17 +325,25 @@ class _RegisterScreenState extends State<RegisterScreen>
                   : 'assets/icon/eye-slash.svg',
               width: 20,
               height: 20,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
         ),
         hintText: 'Enter your password',
-        hintStyle: const TextStyle(color: Colors.black45),
+        hintStyle: const TextStyle(color: Colors.white70),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.2),
+        fillColor: Colors.white.withOpacity(0.1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
         ),
       ),
     );
@@ -372,8 +388,10 @@ class _RegisterScreenState extends State<RegisterScreen>
           final userCredential = await AuthService().signInWithGoogle();
           if (!mounted) return;
           if (userCredential != null) {
-            _showDialog('Success',
-                'Signed in as ${userCredential.user!.displayName}', DialogType.success);
+            _showDialog(
+                'Success',
+                'Signed in as ${userCredential.user!.displayName}',
+                DialogType.success);
           } else {
             _showDialog('Error', 'Google sign-in failed', DialogType.error);
           }
@@ -382,10 +400,10 @@ class _RegisterScreenState extends State<RegisterScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SvgPicture.asset('assets/icon/google-g.svg',
-                width: 30, height: 30, color: Colors.black),
+                width: 30, height: 30, color: Colors.white),
             const SizedBox(width: 10),
             const Text("Continue with Google",
-                style: TextStyle(color: Colors.black, fontSize: 16)),
+                style: TextStyle(color: Colors.white, fontSize: 16)),
           ],
         ),
       ),
@@ -399,14 +417,14 @@ class _RegisterScreenState extends State<RegisterScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text("Already have an account?",
-              style: TextStyle(color: Colors.black)),
+              style: TextStyle(color: Colors.white)),
           TextButton(
             onPressed: () {
               Navigator.pushNamed(context, RoutesName.loginScreen);
             },
             child: const Text("Login",
                 style: TextStyle(
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     decoration: TextDecoration.underline)),
           )

@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:manshi/models/user_model.dart';
+import 'package:manshi/models/preference_model.dart';
 import 'package:manshi/services/firestore_service.dart';
 import 'package:manshi/firebase_auth/fcm_services.dart';
-import 'package:awesome_dialog/awesome_dialog.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
@@ -14,20 +14,23 @@ class UserListScreen extends StatefulWidget {
 
 class _UserListScreenState extends State<UserListScreen> {
   List<UserModel> users = [];
+  List<PreferenceModel> allPreferences = [];
   List<UserModel> selectedUsers = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUsers();
+    _loadData();
   }
 
-  Future<void> _loadUsers() async {
+  Future<void> _loadData() async {
     try {
       final userList = await FirestoreService.getAllUsers();
+      final preferenceList = await FirestoreService.getAllPreferences(); // Implement this in FirestoreService
       setState(() {
         users = userList;
+        allPreferences = preferenceList;
         isLoading = false;
       });
     } catch (e) {
@@ -155,6 +158,21 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
+  // Helper: Get preference name by ID
+  String _getPreferenceNameById(String id) {
+    final pref = allPreferences.firstWhere(
+          (p) => p.id == id,
+      orElse: () => PreferenceModel(
+        id: id,
+        categoryId: '',
+        name: 'Unknown',
+        description: '',
+        createdAt: DateTime.now(),
+      ),
+    );
+    return pref.name;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,7 +204,8 @@ class _UserListScreenState extends State<UserListScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Text(
               'Total Users: ${users.length}',
-              style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -197,6 +216,10 @@ class _UserListScreenState extends State<UserListScreen> {
                 final user = users[index];
                 final isSelected = selectedUsers.contains(user);
                 final hasFCMToken = user.fcmToken != null && user.fcmToken!.isNotEmpty;
+
+                // Convert preference IDs to names
+                final preferenceNames =
+                user.preferences.map((id) => _getPreferenceNameById(id)).toList();
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -230,7 +253,8 @@ class _UserListScreenState extends State<UserListScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: Text(
@@ -243,10 +267,14 @@ class _UserListScreenState extends State<UserListScreen> {
                                       ),
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: user.role == 'admin' ? Colors.red : Colors.green,
-                                        borderRadius: BorderRadius.circular(12),
+                                        color: user.role == 'admin'
+                                            ? Colors.red
+                                            : Colors.green,
+                                        borderRadius:
+                                        BorderRadius.circular(12),
                                       ),
                                       child: Text(
                                         user.role.toUpperCase(),
@@ -262,24 +290,27 @@ class _UserListScreenState extends State<UserListScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   user.email,
-                                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                  style: const TextStyle(
+                                      fontSize: 14, color: Colors.grey),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Registered: ${_formatDate(user.createdAt)}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey),
                                 ),
                                 if (hasFCMToken)
                                   const Text(
                                     '📱 Push notifications enabled',
-                                    style: TextStyle(fontSize: 12, color: Colors.green),
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.green),
                                   ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      if (user.preferences.isNotEmpty) ...[
+                      if (preferenceNames.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         const Text(
                           'Preferences:',
@@ -293,14 +324,16 @@ class _UserListScreenState extends State<UserListScreen> {
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: user.preferences.map<Widget>((pref) {
+                          children: preferenceNames.map<Widget>((prefName) {
                             return Chip(
                               label: Text(
-                                pref,
-                                style: const TextStyle(color: Colors.black, fontSize: 12),
+                                prefName,
+                                style: const TextStyle(
+                                    color: Colors.black, fontSize: 12),
                               ),
                               backgroundColor: Colors.white,
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
                             );
                           }).toList(),
                         ),
@@ -309,7 +342,8 @@ class _UserListScreenState extends State<UserListScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Favorite Quotes: ${user.favoriteQuotes.length}',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.grey),
                         ),
                       ],
                     ],

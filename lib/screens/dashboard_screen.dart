@@ -86,7 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       BuildContext context,
       ) {
     return SizedBox(
-      height: 160,
+      height: 130,  // Increase height
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
             child: Container(
-              width: 140,
+              width: 180,  // Increase width
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(

@@ -1,13 +1,14 @@
+import 'dart:ui';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';  // <-- Add this import
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/firebase_auth/fcm_services.dart';
 import 'package:manshi/services/firestore_service.dart';
-import 'package:manshi/utils/debug_utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +17,7 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -24,9 +25,35 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isPasswordVisible = false;
   bool isEmailLoading = false;
   bool isGoogleLoading = false;
+  bool animate = false;
 
   final _firestore = FirebaseFirestore.instance;
   final FCMServices _fcmServices = FCMServices();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Set status bar icons/text to white (light)
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent, // transparent or your preferred color
+      statusBarIconBrightness: Brightness.light, // Android: light icons
+      statusBarBrightness: Brightness.dark, // iOS: light icons
+    ));
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => animate = true);
+    });
+  }
+
+  // Optional: Reset status bar style when this screen disposes
+  @override
+  void dispose() {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _showDialog(String title, String desc, DialogType type, {VoidCallback? onOk}) {
     if (!mounted) return;
@@ -165,127 +192,248 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(children: [
-        Container(
-          padding: const EdgeInsets.only(left: 80, top: 150),
-          child: const Text(
-            "Welcome Back!",
-            style: TextStyle(color: Colors.white, fontSize: 33),
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF121212), Color(0xFF1E1E1E)],
           ),
         ),
-        Container(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).size.height * 0.3,
-            right: 35,
-            left: 35,
-          ),
-          child: ListView(
-            children: [
-              TextField(
-                controller: _emailController,
-                style: const TextStyle(color: Colors.white),
-                decoration: _inputDecoration('Enter your email', 'email.svg'),
-              ),
-              const SizedBox(height: 30),
-              TextField(
-                controller: _passwordController,
-                obscureText: !isPasswordVisible,
-                style: const TextStyle(color: Colors.white),
-                decoration: _passwordInputDecoration(),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(children: [
-                    Checkbox(
-                      value: isChecked,
-                      onChanged: (value) => setState(() => isChecked = value!),
-                      checkColor: Colors.white,
-                      activeColor: Colors.grey[700],
-                    ),
-                    const Text("Remember me", style: TextStyle(color: Colors.white)),
-                  ]),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, RoutesName.forgotPasswordScreen),
-                    child: const Text("Forgot Password?", style: TextStyle(color: Colors.white)),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -80,
+              right: -60,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Color(0xFF7B61FF).withOpacity(0.5),
+                      Colors.transparent,
+                    ],
                   ),
-                ],
+                ),
               ),
-              _loginButton(),
-              const SizedBox(height: 20),
-              const Center(
-                child: Text("Or", style: TextStyle(color: Colors.white, fontSize: 16)),
+            ),
+            AnimatedOpacity(
+              opacity: animate ? 1 : 0,
+              duration: const Duration(milliseconds: 1000),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 34, top: 85, right: 20),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: const Text(
+                        "Welcome Back!",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 33,
+                          fontWeight: FontWeight.bold,
+                          height: 1.3,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black87,
+                              blurRadius: 4,
+                              offset: Offset(1, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              _googleSignInButton(),
-              _registerRedirect(),
-              const SizedBox(height: 20),
-              _debugButton(),
-            ],
-          ),
+            ),
+            SafeArea(
+              child: Center(
+                child: AnimatedOpacity(
+                  opacity: animate ? 1 : 0,
+                  duration: const Duration(milliseconds: 1000),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 150),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(25),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildInputField(_emailController, 'Enter your email', 'email.svg'),
+                              const SizedBox(height: 30),
+                              _buildPasswordField(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Checkbox(
+                                          value: isChecked,
+                                          onChanged: (value) => setState(() => isChecked = value!),
+                                          checkColor: Colors.black,
+                                          activeColor: Colors.green.shade400,
+                                        ),
+                                        Flexible(
+                                          child: Text(
+                                            "Remember me",
+                                            style: const TextStyle(color: Colors.white),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pushNamed(context, RoutesName.forgotPasswordScreen),
+                                    child: const Text("Forgot Password?", style: TextStyle(color: Colors.white70)),
+                                  ),
+                                ],
+                              ),
+                              _loginButton(),
+                              const SizedBox(height: 20),
+                              const Center(
+                                child: Text("Or", style: TextStyle(color: Colors.white54, fontSize: 16)),
+                              ),
+                              _googleSignInButton(),
+                              _registerRedirect(),
+                              const SizedBox(height: 20),
+                              // _debugButton(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ]),
+      ),
     );
   }
 
-  InputDecoration _inputDecoration(String hintText, String iconName) {
-    return InputDecoration(
-      prefixIcon: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: SvgPicture.asset(
-          'assets/icon/$iconName',
-          width: 20,
-          height: 20,
-          color: Colors.white,
-        ),
-      ),
-      fillColor: Colors.grey[900],
-      filled: true,
-      hintText: hintText,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-    );
-  }
-
-  InputDecoration _passwordInputDecoration() {
-    return InputDecoration(
-      prefixIcon: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: SvgPicture.asset(
-          'assets/icon/password.svg',
-          width: 20,
-          height: 20,
-          color: Colors.white,
-        ),
-      ),
-      suffixIcon: GestureDetector(
-        onTap: () => setState(() => isPasswordVisible = !isPasswordVisible),
-        child: Padding(
+  Widget _buildInputField(TextEditingController controller, String hint, String icon) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        prefixIcon: Padding(
           padding: const EdgeInsets.all(12.0),
           child: SvgPicture.asset(
-            isPasswordVisible ? 'assets/icon/eye-open.svg' : 'assets/icon/eye-slash.svg',
+            'assets/icon/$icon',
             width: 20,
             height: 20,
             color: Colors.white,
           ),
         ),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white54),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
       ),
-      fillColor: Colors.grey[900],
-      filled: true,
-      hintText: 'Enter your password',
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextField(
+      controller: _passwordController,
+      obscureText: !isPasswordVisible,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        prefixIcon: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: SvgPicture.asset(
+            'assets/icon/password.svg',
+            width: 20,
+            height: 20,
+            color: Colors.white,
+          ),
+        ),
+        suffixIcon: GestureDetector(
+          onTap: () => setState(() => isPasswordVisible = !isPasswordVisible),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: SvgPicture.asset(
+              isPasswordVisible ? 'assets/icon/eye-open.svg' : 'assets/icon/eye-slash.svg',
+              width: 20,
+              height: 20,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        hintText: 'Enter your password',
+        hintStyle: const TextStyle(color: Colors.white54),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.green, width: 2),
+        ),
+      ),
     );
   }
 
   Widget _loginButton() {
     return Container(
-      decoration: BoxDecoration(color: Colors.grey[900], borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       width: double.infinity,
       height: 50,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF4CAF50), Color(0xFF81C784)]),
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: TextButton(
         onPressed: isEmailLoading ? null : _loginWithEmailPassword,
         child: isEmailLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text("Login", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            : const Text(
+          "Login",
+          style: TextStyle(
+              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
       ),
     );
   }
@@ -293,7 +441,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _googleSignInButton() {
     return Container(
       margin: const EdgeInsets.only(top: 20),
-      decoration: BoxDecoration(color: Colors.grey[900], borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(10),
+      ),
       width: double.infinity,
       height: 50,
       child: TextButton(
@@ -305,12 +456,18 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             SvgPicture.asset(
               'assets/icon/google-g.svg',
-              width: 40,
-              height: 40,
+              width: 30,
+              height: 30,
               color: Colors.white,
             ),
-            const SizedBox(width: 8),
-            const Text("Google", style: TextStyle(color: Colors.white, fontSize: 18)),
+            const SizedBox(width: 10),
+            Flexible(
+              child: const Text(
+                "Continue with Google",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -318,31 +475,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _registerRedirect() {
-    return Container(
-      margin: const EdgeInsets.only(top: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text("Don't have an account?", style: TextStyle(color: Colors.white)),
-          TextButton(
-            onPressed: () => Navigator.pushNamed(context, RoutesName.registerScreen),
-            child: const Text("Create an account", style: TextStyle(color: Colors.white)),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Center(
+          child: Text(
+            "Don't have an account?",
+            style: TextStyle(color: Colors.white),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _debugButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: TextButton(
-        onPressed: () => DebugUtils.debugFirebaseConnection(context),
-        style: TextButton.styleFrom(
-          foregroundColor: Colors.grey[400],
         ),
-        child: const Text("Debug Firebase Connection"),
-      ),
+        TextButton(
+          onPressed: () => Navigator.pushNamed(context, RoutesName.registerScreen),
+          child: const Text(
+            "Create an account",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

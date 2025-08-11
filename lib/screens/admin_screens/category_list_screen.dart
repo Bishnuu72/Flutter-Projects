@@ -12,6 +12,8 @@ class CategoryListScreen extends StatefulWidget {
 
 class _CategoryListScreenState extends State<CategoryListScreen> {
   List<CategoryModel> categories = [];
+  List<CategoryModel> quotesCategories = [];
+  List<CategoryModel> healthCategories = [];
   bool isLoading = true;
 
   @override
@@ -23,6 +25,11 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   Future<void> loadCategories() async {
     try {
       final categoriesData = await FirestoreService.getCategories();
+
+      // Separate categories by type
+      quotesCategories = categoriesData.where((c) => c.type.toLowerCase() == 'quotes').toList();
+      healthCategories = categoriesData.where((c) => c.type.toLowerCase() == 'health').toList();
+
       setState(() {
         categories = categoriesData;
         isLoading = false;
@@ -57,6 +64,129 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
     }
   }
 
+  Widget _buildCategoryItem(CategoryModel category) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.category,
+            color: Colors.white,
+            size: 24,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (category.description.isNotEmpty)
+                  Text(
+                    category.description,
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 14,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                RoutesName.editCategoryScreen,
+                arguments: category,
+              );
+            },
+            icon: const Icon(
+              Icons.edit,
+              color: Colors.blue,
+              size: 20,
+            ),
+          ),
+          IconButton(
+            onPressed: () => _showDeleteDialog(category),
+            icon: const Icon(
+              Icons.delete,
+              color: Colors.red,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(CategoryModel category) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[850],
+        title: Text(
+          'Delete Category',
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${category.name}"? This action cannot be undone.',
+          style: TextStyle(color: Colors.grey[300]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[400]),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              deleteCategory(category.id);
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(String title, List<CategoryModel> categoryList) {
+    if (categoryList.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...categoryList.map(_buildCategoryItem).toList(),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,9 +207,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
         ],
       ),
       body: isLoading
-          ? const Center(
-        child: CircularProgressIndicator(color: Colors.white),
-      )
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : RefreshIndicator(
         onRefresh: loadCategories,
         backgroundColor: Colors.black,
@@ -129,113 +257,17 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             ],
           ),
         )
-            : ListView.builder(
+            : SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[850],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.category,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (category.description.isNotEmpty)
-                          Text(
-                            category.description,
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 14,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      // Implement edit functionality here
-                      Navigator.pushNamed(
-                        context,
-                        RoutesName.categoryScreen,
-                        arguments: category,
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.edit,
-                      color: Colors.blue,
-                      size: 20,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => _showDeleteDialog(category),
-                    icon: const Icon(
-                      Icons.delete,
-                      color: Colors.red,
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteDialog(CategoryModel category) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[850],
-        title: Text(
-          'Delete Category',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Are you sure you want to delete "${category.name}"? This action cannot be undone.',
-          style: TextStyle(color: Colors.grey[300]),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSection('Quotes Categories', quotesCategories),
+              _buildSection('Health Categories', healthCategories),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              deleteCategory(category.id);
-            },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -11,16 +11,16 @@ class SampleData {
     try {
       // Initialize categories
       await _initializeCategories();
-      
+
       // Initialize preferences
       await _initializePreferences();
-      
+
       // Initialize quotes
       await _initializeQuotes();
-      
+
       // Initialize health tips
       await _initializeHealthTips();
-      
+
       print('Sample data initialized successfully!');
     } catch (e) {
       print('Error initializing sample data: $e');
@@ -34,35 +34,45 @@ class SampleData {
         name: 'Mental Health',
         description: 'Focus on emotional well-being and psychological health',
         imageUrl: 'psychology',
+        type: 'Health',          // <-- Added type
         createdAt: DateTime.now(),
+        preferences: const [],
       ),
       CategoryModel(
         id: '',
         name: 'Physical Fitness',
         description: 'Exercise, strength training, and physical activities',
         imageUrl: 'fitness_center',
+        type: 'Health',          // <-- Added type
         createdAt: DateTime.now(),
+        preferences: const [],
       ),
       CategoryModel(
         id: '',
         name: 'Nutrition',
         description: 'Healthy eating habits and dietary guidance',
         imageUrl: 'restaurant',
+        type: 'Health',          // <-- Added type
         createdAt: DateTime.now(),
+        preferences: const [],
       ),
       CategoryModel(
         id: '',
         name: 'Mindfulness',
         description: 'Meditation, breathing exercises, and mental clarity',
         imageUrl: 'self_improvement',
+        type: 'Health',          // <-- Added type
         createdAt: DateTime.now(),
+        preferences: const [],
       ),
       CategoryModel(
         id: '',
         name: 'Relationships',
         description: 'Building and maintaining healthy relationships',
         imageUrl: 'people',
+        type: 'Quotes',          // <-- Added type (assumed Quotes)
         createdAt: DateTime.now(),
+        preferences: const [],
       ),
     ];
 
@@ -72,12 +82,10 @@ class SampleData {
   }
 
   static Future<void> _initializePreferences() async {
-    // Get category IDs first
     final categoriesSnapshot = await _firestore.collection('categories').get();
     final categoryDocs = categoriesSnapshot.docs;
-    
+
     final preferences = [
-      // Mental Health preferences
       PreferenceModel(
         id: '',
         categoryId: categoryDocs[0].id, // Mental Health
@@ -87,20 +95,18 @@ class SampleData {
       ),
       PreferenceModel(
         id: '',
-        categoryId: categoryDocs[0].id, // Mental Health
+        categoryId: categoryDocs[0].id,
         name: 'Self-esteem',
         description: 'Building confidence and self-worth',
         createdAt: DateTime.now(),
       ),
       PreferenceModel(
         id: '',
-        categoryId: categoryDocs[0].id, // Mental Health
+        categoryId: categoryDocs[0].id,
         name: 'Positive Thinking',
         description: 'Cultivating optimistic mindset',
         createdAt: DateTime.now(),
       ),
-      
-      // Physical Fitness preferences
       PreferenceModel(
         id: '',
         categoryId: categoryDocs[1].id, // Physical Fitness
@@ -110,20 +116,18 @@ class SampleData {
       ),
       PreferenceModel(
         id: '',
-        categoryId: categoryDocs[1].id, // Physical Fitness
+        categoryId: categoryDocs[1].id,
         name: 'Strength Training',
         description: 'Building muscle and physical strength',
         createdAt: DateTime.now(),
       ),
       PreferenceModel(
         id: '',
-        categoryId: categoryDocs[1].id, // Physical Fitness
+        categoryId: categoryDocs[1].id,
         name: 'Yoga',
         description: 'Flexibility and mind-body connection',
         createdAt: DateTime.now(),
       ),
-      
-      // Nutrition preferences
       PreferenceModel(
         id: '',
         categoryId: categoryDocs[2].id, // Nutrition
@@ -133,13 +137,11 @@ class SampleData {
       ),
       PreferenceModel(
         id: '',
-        categoryId: categoryDocs[2].id, // Nutrition
+        categoryId: categoryDocs[2].id,
         name: 'Meal Planning',
         description: 'Organized and healthy meal preparation',
         createdAt: DateTime.now(),
       ),
-      
-      // Mindfulness preferences
       PreferenceModel(
         id: '',
         categoryId: categoryDocs[3].id, // Mindfulness
@@ -149,13 +151,11 @@ class SampleData {
       ),
       PreferenceModel(
         id: '',
-        categoryId: categoryDocs[3].id, // Mindfulness
+        categoryId: categoryDocs[3].id,
         name: 'Breathing Exercises',
         description: 'Deep breathing and relaxation techniques',
         createdAt: DateTime.now(),
       ),
-      
-      // Relationships preferences
       PreferenceModel(
         id: '',
         categoryId: categoryDocs[4].id, // Relationships
@@ -165,7 +165,7 @@ class SampleData {
       ),
       PreferenceModel(
         id: '',
-        categoryId: categoryDocs[4].id, // Relationships
+        categoryId: categoryDocs[4].id,
         name: 'Self-love',
         description: 'Caring for yourself first',
         createdAt: DateTime.now(),
@@ -178,10 +178,9 @@ class SampleData {
   }
 
   static Future<void> _initializeQuotes() async {
-    // Get preference IDs for tagging
     final preferencesSnapshot = await _firestore.collection('preferences').get();
     final preferenceDocs = preferencesSnapshot.docs;
-    
+
     final quotes = [
       QuoteModel(
         id: '',
@@ -263,12 +262,11 @@ class SampleData {
   }
 
   static Future<void> _initializeHealthTips() async {
-    // Get category and preference IDs
     final categoriesSnapshot = await _firestore.collection('categories').get();
     final preferencesSnapshot = await _firestore.collection('preferences').get();
     final categoryDocs = categoriesSnapshot.docs;
     final preferenceDocs = preferencesSnapshot.docs;
-    
+
     final healthTips = [
       HealthTipModel(
         id: '',
@@ -316,4 +314,4 @@ class SampleData {
       await _firestore.collection('healthTips').add(healthTip.toMap());
     }
   }
-} 
+}

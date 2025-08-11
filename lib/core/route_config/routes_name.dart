@@ -28,4 +28,5 @@ class RoutesName {
   static const String adminInitScreen = '/admin_init_screen';
   static const String reminderScreen = '/reminder_screen';
   static const String notificationScreen = '/notification_screen';
+  static const String editCategoryScreen = '/edit_category_screen';
 }

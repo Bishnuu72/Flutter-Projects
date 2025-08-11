@@ -4,20 +4,20 @@ class CategoryModel {
   final String id;
   final String name;
   final String description;
-  final String? imageUrl;  // This holds your image URL or icon URL
+  final String? imageUrl;  // Image URL or icon URL
+  final String type;       // New field to distinguish category type (e.g., 'Quotes' or 'Health')
   final DateTime createdAt;
+  final List<String> preferences;
 
   CategoryModel({
     required this.id,
     required this.name,
     required this.description,
-    required this.imageUrl
-    ,
+    required this.imageUrl,
+    required this.type,     // required in constructor
     required this.createdAt,
+    required this.preferences,
   });
-
-  /// Getter alias for icon to be used as imageUrl in UI
-  // String get imageUrl => icon;
 
   factory CategoryModel.fromMap(String id, Map<String, dynamic> map) {
     return CategoryModel(
@@ -25,7 +25,9 @@ class CategoryModel {
       name: map['name'] ?? '',
       description: map['description'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
+      type: map['type'] ?? '',  // read type from map
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      preferences: List<String>.from(map['preferences'] ?? []),
     );
   }
 
@@ -34,7 +36,9 @@ class CategoryModel {
       'name': name,
       'description': description,
       'imageUrl': imageUrl,
+      'type': type,           // include type in map
       'createdAt': createdAt,
+      'preferences': preferences,
     };
   }
 
@@ -42,15 +46,19 @@ class CategoryModel {
     String? id,
     String? name,
     String? description,
-    String? icon,
+    String? imageUrl,
+    String? type,
     DateTime? createdAt,
+    List<String>? preferences,
   }) {
     return CategoryModel(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      imageUrl: icon ?? this.imageUrl,
+      imageUrl: imageUrl ?? this.imageUrl,
+      type: type ?? this.type,         // copyWith type
       createdAt: createdAt ?? this.createdAt,
+      preferences: preferences ?? this.preferences,
     );
   }
 }

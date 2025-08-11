@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/screens/admin_screens/admin_dashboard_screen.dart';
 import 'package:manshi/screens/admin_screens/category_screen.dart';
+import 'package:manshi/screens/admin_screens/edit_category_screen.dart';
 import 'package:manshi/screens/admin_screens/health_tips_screen.dart';
 import 'package:manshi/screens/admin_screens/quote_screen.dart';
 import 'package:manshi/screens/admin_screens/user_list_screen.dart';
@@ -23,6 +24,8 @@ import 'package:manshi/screens/favorites_screen.dart';
 import 'package:manshi/screens/motivation_screen.dart';
 import 'package:manshi/screens/health_tips_detail_screen.dart';
 import 'package:manshi/screens/reminder_screen.dart';
+
+import '../../models/category_model.dart';
 
 class RouteConfig {
   RouteConfig._();
@@ -101,7 +104,12 @@ class RouteConfig {
       case RoutesName.notificationScreen:
         return MaterialPageRoute(builder: (_) => const NotificationScreen());
 
-      case RoutesName.defaultScreen:
+      case RoutesName.editCategoryScreen:
+      final category = args as CategoryModel;
+        return MaterialPageRoute(builder: (_) => EditCategoryScreen(category: category));
+
+
+    case RoutesName.defaultScreen:
       default:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
     }
