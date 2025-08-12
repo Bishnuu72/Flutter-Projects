@@ -255,8 +255,8 @@ class FirestoreService {
     return healthTip.copyWith(id: docRef.id);
   }
 
-  static Future<void> updateHealthTip(String healthTipId, Map<String, dynamic> data) async {
-    await _firestore.collection('healthTips').doc(healthTipId).update(data);
+  static Future<void> updateHealthTip(HealthTipModel healthTip) async {
+    await _firestore.collection('healthTips').doc(healthTip.id).update(healthTip.toMap());
   }
 
   static Future<void> deleteHealthTip(String healthTipId) async {

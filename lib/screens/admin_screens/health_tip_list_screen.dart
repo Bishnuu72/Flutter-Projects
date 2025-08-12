@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manshi/services/firestore_service.dart';
 import 'package:manshi/models/health_tip_model.dart';
+import 'package:manshi/screens/admin_screens/edit_health_screen.dart'; // ✅ Added import for edit screen
 import 'package:manshi/core/route_config/routes_name.dart';
 
 class HealthTipListScreen extends StatefulWidget {
@@ -58,10 +59,11 @@ class _HealthTipListScreenState extends State<HealthTipListScreen> {
   }
 
   void _navigateToEditHealthTip(HealthTipModel healthTip) async {
-    final result = await Navigator.pushNamed(
+    final result = await Navigator.push(
       context,
-      RoutesName.healthTipsScreen,
-      arguments: healthTip,
+      MaterialPageRoute(
+        builder: (context) => EditHealthTipsScreen(healthTip: healthTip), // ✅ Direct push to edit screen
+      ),
     );
     if (result == true) {
       loadHealthTips();

@@ -29,4 +29,6 @@ class RoutesName {
   static const String reminderScreen = '/reminder_screen';
   static const String notificationScreen = '/notification_screen';
   static const String editCategoryScreen = '/edit_category_screen';
+  static const String editHealthTipsScreen = '/edit_health_screen';
+  static const String editQuoteScreen = '/edit_quotes_screen';
 }

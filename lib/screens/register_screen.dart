@@ -7,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/firebase_auth/auth_service.dart';
 import 'package:manshi/firebase_auth/fcm_services.dart';
-import 'package:manshi/services/firestore_service.dart';
+// import 'package:manshi/services/firestore_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
+import 'package:manshi/models/health_tip_model.dart';
+import 'package:manshi/models/quote_model.dart';
 import 'package:manshi/screens/admin_screens/admin_dashboard_screen.dart';
 import 'package:manshi/screens/admin_screens/category_screen.dart';
 import 'package:manshi/screens/admin_screens/edit_category_screen.dart';
+import 'package:manshi/screens/admin_screens/edit_health_screen.dart';
+import 'package:manshi/screens/admin_screens/edit_quotes_screen.dart';
 import 'package:manshi/screens/admin_screens/health_tips_screen.dart';
 import 'package:manshi/screens/admin_screens/quote_screen.dart';
 import 'package:manshi/screens/admin_screens/user_list_screen.dart';
@@ -105,11 +109,19 @@ class RouteConfig {
         return MaterialPageRoute(builder: (_) => const NotificationScreen());
 
       case RoutesName.editCategoryScreen:
-      final category = args as CategoryModel;
+        final category = args as CategoryModel;
         return MaterialPageRoute(builder: (_) => EditCategoryScreen(category: category));
 
+      case RoutesName.editHealthTipsScreen:
+        final healthTip = args as HealthTipModel;
+        return MaterialPageRoute(builder: (_) => EditHealthTipsScreen(healthTip: healthTip));
 
-    case RoutesName.defaultScreen:
+      case RoutesName.editQuoteScreen:
+        final quote = args as QuoteModel;
+        return MaterialPageRoute(builder: (_) => EditQuoteScreen(quote: quote));
+
+
+      case RoutesName.defaultScreen:
       default:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
     }

@@ -62,7 +62,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
   void _editQuote(QuoteModel quote) {
     Navigator.pushNamed(
       context,
-      RoutesName.quoteScreen,
+      RoutesName.editQuoteScreen,  // <-- Navigate to Edit screen here
       arguments: quote,
     ).then((_) => loadQuotes());
   }
@@ -80,7 +80,7 @@ class _QuoteListScreenState extends State<QuoteListScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, RoutesName.quoteScreen)
+              Navigator.pushNamed(context, RoutesName.quoteScreen) // Add new quote
                   .then((_) => loadQuotes());
             },
             icon: const Icon(Icons.add, color: Colors.white),
