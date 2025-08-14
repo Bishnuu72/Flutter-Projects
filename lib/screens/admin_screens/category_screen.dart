@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:awesome_dialog/awesome_dialog.dart'; // Added for SweetAlert style
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -103,9 +104,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
       await FirebaseFirestore.instance.collection('categories').add(categoryData);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Category saved successfully!')),
-      );
+      // SweetAlert style success dialog
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.success,
+        animType: AnimType.scale,
+        title: 'Success!',
+        desc: 'Category added successfully!',
+        btnOkOnPress: () {},
+      ).show();
 
       _categoryController.clear();
       _descriptionController.clear();
