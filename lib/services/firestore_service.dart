@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -197,10 +199,12 @@ class FirestoreService {
   }
 
   static Future<List<QuoteModel>> getQuotesByCategory(String categoryName) async {
+    log("category name: $categoryName");
     final snapshot = await _firestore
         .collection('quotes')
         .where('categories', arrayContains: categoryName)
         .get();
+    log("category name: $categoryName, data: ${snapshot.docs}");
     return snapshot.docs.map((doc) => QuoteModel.fromMap(doc.id, doc.data())).toList();
   }
 

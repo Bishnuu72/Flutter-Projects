@@ -67,114 +67,114 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Theme.of(context).iconTheme.color,
         title: const Text('My Favorites'),
         centerTitle: true,
         elevation: 0,
       ),
       body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            )
+          ? Center(
+        child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
+      )
           : favoriteQuotes.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.favorite_border,
-                        size: 80,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No favorite quotes yet',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Start exploring quotes and add them to your favorites',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, RoutesName.motivationScreen);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text('Explore Quotes'),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: favoriteQuotes.length,
-                  itemBuilder: (context, index) {
-                    final quote = favoriteQuotes[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[850],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '"${quote.text}"',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () => removeFromFavorites(quote.id),
-                                icon: const Icon(
-                                  Icons.favorite,
-                                  color: Colors.red,
-                                  size: 24,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            '- ${quote.author}',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 16,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.favorite_border,
+              size: 80,
+              color: Theme.of(context).iconTheme.color?.withOpacity(0.6),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No favorite quotes yet',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.6),
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start exploring quotes and add them to your favorites',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, RoutesName.motivationScreen);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
+              ),
+              child: const Text('Explore Quotes'),
+            ),
+          ],
+        ),
+      )
+          : ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: favoriteQuotes.length,
+        itemBuilder: (context, index) {
+          final quote = favoriteQuotes[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '"${quote.text}"',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                          fontSize: 18,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => removeFromFavorites(quote.id),
+                      icon: const Icon(
+                        Icons.favorite,
+                        color: Colors.red,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '- ${quote.author}',
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
-} 
+}

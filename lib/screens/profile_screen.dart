@@ -8,6 +8,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
+import 'package:provider/provider.dart';
+import 'package:manshi/screens/theme/theme.dart'; // Import ThemeProvider
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -55,15 +57,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _showImageOptions() async {
     showModalBottomSheet(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Theme.of(context).cardColor,
       context: context,
       builder: (_) {
         return SafeArea(
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.white),
-                title: const Text('Upload photo', style: TextStyle(color: Colors.white)),
+                leading: Icon(Icons.photo_library, color: Theme.of(context).iconTheme.color),
+                title: Text('Upload photo', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
                 onTap: _uploadPhoto,
               ),
               if (profileImageUrl != null)
@@ -139,22 +141,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final email = user?.email ?? 'No Email';
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: SvgPicture.asset(
             'assets/icon/chevron-backward.svg',
-            color: Colors.grey,
+            color: Theme.of(context).iconTheme.color,
             height: 40,
             width: 40,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Profile',
-          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w400),
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color,
+            fontSize: 22,
+            fontWeight: FontWeight.w400,
+          ),
         ),
       ),
       body: Padding(
@@ -167,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _singleButtonContainer(Icons.menu_book, "Content preferences", () {}),
             const SizedBox(height: 20),
             _sectionTitle('ACCOUNT'),
-            _singleButtonContainer(Icons.edit, "Theme", () {}),
+            _themeToggleTile(),
             _singleButtonContainer(Icons.password, "Forgot Password", () {
               Navigator.pushNamed(context, RoutesName.forgotPasswordScreen);
             }),
@@ -185,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[850],
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -200,10 +206,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             )
                 : CircleAvatar(
               radius: 35,
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).primaryColorLight,
               child: Text(
                 (displayName?.isNotEmpty ?? false) ? displayName![0].toUpperCase() : "?",
-                style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
               ),
             ),
           ),
@@ -214,8 +224,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   displayName ?? 'No Name',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -224,7 +234,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 10),
                 Text(
                   email,
-                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
+                    fontSize: 14,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -238,7 +251,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.bold),
+      style: TextStyle(
+        color: Theme.of(context).textTheme.labelMedium?.color,
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -246,13 +263,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[850],
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.white),
-        title: Text(title, style: const TextStyle(color: Colors.white)),
+        leading: Icon(icon, color: Theme.of(context).iconTheme.color),
+        title: Text(title, style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _themeToggleTile() {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        leading: Icon(Icons.brightness_6, color: Theme.of(context).iconTheme.color),
+        title: Text('Dark Mode', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+        trailing: Consumer<ThemeProvider>(
+          builder: (context, provider, child) => Switch(
+            value: provider.isDarkMode,
+            onChanged: (value) {
+              provider.toggleTheme();
+            },
+          ),
+        ),
       ),
     );
   }

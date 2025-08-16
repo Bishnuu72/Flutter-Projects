@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
@@ -83,10 +84,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget buildQuoteCategoryHorizontalList(
       List<CategoryModel> categories,
       String categoryType,
-      BuildContext context,
-      ) {
+      BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
-      height: 130,  // Increase height
+      height: 130, // Increase height
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
@@ -100,17 +101,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 context,
                 RoutesName.motivationScreen,
                 arguments: {
-                  'categoryName': category.name,
+                  'categoryName': category.name, // Pass name for exact category query
                   'categoryType': categoryType,
                 },
               );
             },
             child: Container(
-              width: 180,  // Increase width
+              width: 180, // Increase width
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  image: NetworkImage(category.imageUrl ?? ''),
+                  image: CachedNetworkImageProvider(category.imageUrl ?? ''),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -118,14 +119,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: Colors.black.withOpacity(0.5),
+                  color: (isDarkMode ? Colors.black : Colors.white).withOpacity(0.5),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   category.name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -141,7 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -152,10 +153,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Explore',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
                       fontSize: 25,
                       fontWeight: FontWeight.w700,
                     ),
@@ -165,7 +166,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       IconButton(
                         icon: Stack(
                           children: [
-                            const Icon(Icons.notifications, size: 28, color: Colors.white),
+                            Icon(Icons.notifications,
+                                size: 28, color: Theme.of(context).iconTheme.color),
                             if (hasUnreadNotifications)
                               Positioned(
                                 right: 0,
@@ -180,11 +182,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     minWidth: 16,
                                     minHeight: 16,
                                   ),
-                                  child: const Center(
+                                  child: Center(
                                     child: Text(
                                       '!',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -210,15 +212,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         )
                             : CircleAvatar(
                           radius: 25,
-                          backgroundColor: Colors.white,
+                          backgroundColor: Theme.of(context).primaryColorLight,
                           child: Text(
                             currentUser?.name.isNotEmpty == true
                                 ? currentUser!.name[0].toUpperCase()
                                 : "?",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
                         ),
@@ -233,11 +235,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => Navigator.pushNamed(context, RoutesName.favoritesScreen),
-                      icon: const Icon(Icons.favorite_border, size: 28),
-                      label: const Text('My Favorites', style: TextStyle(fontSize: 16)),
+                      icon: Icon(Icons.favorite_border,
+                          size: 28, color: Theme.of(context).iconTheme.color),
+                      label: Text('My Favorites',
+                          style: TextStyle(
+                              fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[850],
-                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).cardColor,
+                        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
@@ -246,12 +251,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pushNamed(context, RoutesName.motivationScreen),
-                      icon: const Icon(Icons.format_quote, size: 28),
-                      label: const Text('Motivation', style: TextStyle(fontSize: 16)),
+                      onPressed: () => Navigator.pushNamed(context, RoutesName.motivationScreen, arguments: {
+                        'categoryName': null, // Null for all quotes
+                        'categoryType': 'quote',
+                      }),
+                      icon: Icon(Icons.format_quote,
+                          size: 28, color: Theme.of(context).iconTheme.color),
+                      label: Text('Motivation',
+                          style: TextStyle(
+                              fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[850],
-                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).cardColor,
+                        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
@@ -264,73 +275,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () => Navigator.pushNamed(context, RoutesName.reminderScreen),
-                  icon: const Icon(Icons.alarm, size: 28),
-                  label: const Text('Schedule Reminder', style: TextStyle(fontSize: 16)),
+                  icon: Icon(Icons.alarm, size: 28, color: Theme.of(context).iconTheme.color),
+                  label: Text('Schedule Reminder',
+                      style: TextStyle(
+                          fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[850],
-                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).cardColor,
+                    foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 "Today's Quote",
-                style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.titleLarge?.color,
+                  fontSize: 23,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[850],
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    ? Center(child: CircularProgressIndicator(color: Theme.of(context).primaryColor))
                     : todayQuote != null
                     ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '"${todayQuote!.text}"',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
-                        color: Colors.white,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       "- ${todayQuote!.author}",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white70,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         fontStyle: FontStyle.italic,
                       ),
                     )
                   ],
                 )
-                    : const Text(
+                    : Text(
                   '"Your wellness is an investment, not an expense."\n- Bishnu Kumar Yadav',
                   style: TextStyle(
                     fontSize: 18,
-                    color: Colors.white,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 "Quote Categories",
-                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).textTheme.titleLarge?.color,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
               buildQuoteCategoryHorizontalList(quoteCategories, 'quote', context),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 "Health Tips",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.titleLarge?.color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
               buildQuoteCategoryHorizontalList(healthCategories, 'health', context),
