@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:manshi/core/route_config/routes_name.dart';
 import 'package:manshi/services/firestore_service.dart';
 import 'package:manshi/models/preference_model.dart';
-import 'package:manshi/utils/debug_utils.dart';
 
 class PreferenceSelection extends StatefulWidget {
   const PreferenceSelection({super.key});
@@ -20,6 +20,23 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
   bool isLoading = true;
   bool isSaving = false;
 
+  // Updated map to assign icons based on preference name matching the screenshot
+  final Map<String, IconData> iconMap = {
+    'Positive thinking': Icons.thumb_up,
+    'Inspiration': Icons.lightbulb_outline,
+    'Hard times': Icons.hourglass_bottom,
+    'Love': Icons.favorite,
+    'Faith & Spirituality': Icons.self_improvement,
+    'Productivity': Icons.timer,
+    'Relationships': Icons.people,
+    'Stress & Anxiety': Icons.healing,
+    'Working out': Icons.fitness_center,
+    'Self-esteem': Icons.star,
+    'Achieving goals': Icons.check_circle,
+    'Letting go': Icons.delete_outline,
+    // Add more mappings if you have additional preferences in Firestore
+  };
+
   @override
   void initState() {
     super.initState();
@@ -28,15 +45,12 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
 
   Future<void> loadPreferences() async {
     try {
-      print('Loading preferences...');
       final allPreferences = await FirestoreService.getAllPreferences();
-      print('Loaded ${allPreferences.length} preferences');
       setState(() {
         preferences = allPreferences;
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading preferences: $e');
       setState(() {
         isLoading = false;
       });
@@ -81,136 +95,161 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, RoutesName.loginScreen);
-                },
-                child: SvgPicture.asset(
-                  'assets/icon/chevron-backward.svg',
-                  height: 40,
-                  width: 40,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                "Select all topics that motivates you",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 30),
-              Expanded(
-                child: isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                    : preferences.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No preferences available',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          )
-                        : GridView.count(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 3,
-                            children: preferences.map((preference) {
-                              final isSelected = selectedPreferences.contains(preference.id);
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    if (isSelected) {
-                                      selectedPreferences.remove(preference.id);
-                                    } else {
-                                      selectedPreferences.add(preference.id);
-                                    }
-                                  });
-                                },
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white : Colors.grey[900],
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    preference.name,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.black : Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-              ),
-              const SizedBox(height: 30),
-              // Debug button
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => DebugUtils.debugFirebaseConnection(context),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey[400],
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.black, Colors.black87],
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -80,
+              right: -60,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.deepPurple.withOpacity(0.5),
+                      Colors.transparent,
+                    ],
                   ),
-                  child: const Text("Debug Firebase Connection"),
                 ),
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: selectedPreferences.isNotEmpty && !isSaving
-                      ? savePreferences
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[900],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 0,
-                  ).copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.disabled)) {
-                          return Colors.grey[900]!.withOpacity(0.3);
-                        }
-                        return Colors.grey[900];
-                      },
-                    ),
-                  ),
-                  child: isSaving
-                      ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
+            ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 60),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, RoutesName.loginScreen);
+                    },
+                    child: const Icon(
+                      Icons.arrow_back_ios,
                       color: Colors.white,
-                      strokeWidth: 2,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  const Text(
+                    "Choose the best topic you wanna study",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "You can select multiple subjects",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  isLoading
+                      ? const Center(
+                    child: CircularProgressIndicator(color: Colors.green),
+                  )
+                      : preferences.isEmpty
+                      ? const Center(
+                    child: Text(
+                      'No preferences available',
+                      style: TextStyle(color: Colors.white),
                     ),
                   )
-                      : const Text(
-                    "Save",
-                    style: TextStyle(fontSize: 20),
+                      : GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 3,
+                    children: preferences.map((preference) {
+                      final isSelected = selectedPreferences.contains(preference.id);
+                      final icon = iconMap[preference.name] ?? Icons.help_outline; // Default icon if not mapped
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              selectedPreferences.remove(preference.id);
+                            } else {
+                              selectedPreferences.add(preference.id);
+                            }
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.green.withOpacity(0.3) : Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? Colors.green : Colors.white.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                icon,
+                                color: isSelected ? Colors.white : Colors.white70,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                preference.name,
+                                style: TextStyle(
+                                  color: isSelected ? Colors.white : Colors.white70,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ),
+                  const SizedBox(height: 30),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFB2FF59), Color(0xFF69F0AE)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextButton(
+                      onPressed: selectedPreferences.isNotEmpty && !isSaving
+                          ? savePreferences
+                          : null,
+                      child: isSaving
+                          ? const CircularProgressIndicator(color: Colors.black)
+                          : const Text(
+                        "Get started",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

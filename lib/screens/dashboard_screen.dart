@@ -7,6 +7,9 @@ import 'package:manshi/models/quote_model.dart';
 import 'package:manshi/models/user_model.dart';
 import 'package:manshi/models/category_model.dart';
 import 'package:manshi/models/health_tip_model.dart';
+// Add imports for the other screens (adjust paths if needed)
+import 'package:manshi/screens/favorites_screen.dart'; // Import FavoritesScreen
+import 'package:manshi/screens/reminder_screen.dart'; // Import ReminderScreen
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -30,6 +33,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? selectedHealthCategoryId;
   List<HealthTipModel> categoryHealthTips = [];
 
+  // Bottom navigation state (Home/Favourites/Reminders)
+  int _navIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final userData = await FirestoreService.getUser(user.uid);
+        if (!mounted) return;
         setState(() {
           currentUser = userData;
         });
@@ -60,6 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final fetchedQuoteCategories = await FirestoreService.getQuoteCategories();
         final fetchedHealthCategories = await FirestoreService.getHealthCategories();
 
+        if (!mounted) return;
         setState(() {
           quoteCategories = fetchedQuoteCategories;
           healthCategories = fetchedHealthCategories;
@@ -68,6 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       debugPrint("Error loading dashboard data: $e");
     } finally {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -76,18 +85,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> checkUnreadNotifications() async {
     await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
     setState(() {
       hasUnreadNotifications = true;
     });
   }
 
+  // Function to get dynamic greeting based on time
+  String getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  }
+
+  // Function to get first name
+  String getFirstName(String? fullName) {
+    if (fullName == null || fullName.isEmpty) return 'User';
+    return fullName.split(' ').first;
+  }
+
   Widget buildQuoteCategoryHorizontalList(
       List<CategoryModel> categories,
       String categoryType,
-      BuildContext context) {
+      BuildContext context,
+      ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
-      height: 130, // Increase height
+      height: 130,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
@@ -95,25 +126,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
         separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final category = categories[index];
+          final hasImage = (category.imageUrl?.isNotEmpty ?? false);
           return GestureDetector(
             onTap: () {
               Navigator.pushNamed(
                 context,
                 RoutesName.motivationScreen,
                 arguments: {
-                  'categoryName': category.name, // Pass name for exact category query
+                  'categoryName': category.name,
                   'categoryType': categoryType,
                 },
               );
             },
             child: Container(
-              width: 180, // Increase width
+              width: 180,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(category.imageUrl ?? ''),
+                color: Theme.of(context).cardColor,
+                image: hasImage
+                    ? DecorationImage(
+                  image: CachedNetworkImageProvider(category.imageUrl!),
                   fit: BoxFit.cover,
-                ),
+                )
+                    : null,
               ),
               alignment: Alignment.center,
               child: Container(
@@ -139,73 +174,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Explore',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.titleLarge?.color,
-                      fontSize: 25,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Stack(
-                          children: [
-                            Icon(Icons.notifications,
-                                size: 28, color: Theme.of(context).iconTheme.color),
-                            if (hasUnreadNotifications)
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '!',
-                                      style: TextStyle(
-                                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        onPressed: () {
-                          Navigator.pushNamed(context, RoutesName.notificationScreen);
-                        },
-                      ),
-                      const SizedBox(width: 10),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, RoutesName.profileScreen);
-                        },
-                        child: currentUser?.profileImage != null
+  // Updated navigation: Direct switch using IndexedStack (no push/pop, no reset)
+  void _onNavTap(int index) {
+    setState(() => _navIndex = index); // Directly switch the index
+  }
+
+  // Home/Dashboard content widget (extracted for IndexedStack)
+  Widget _buildHomeContent() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Bar (Avatar left, Greeting + First Name, Notifications right)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Left: Avatar + texts (tap to open profile)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, RoutesName.profileScreen),
+                    child: Row(
+                      children: [
+                        currentUser?.profileImage != null
                             ? CircleAvatar(
                           radius: 25,
                           backgroundImage: NetworkImage(currentUser!.profileImage!),
@@ -224,144 +216,238 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                getGreeting(),
+                                style: TextStyle(
+                                  color:
+                                  Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                getFirstName(currentUser?.name),
+                                style: TextStyle(
+                                  color: Theme.of(context).textTheme.titleLarge?.color,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Right: Notifications icon with badge
+                IconButton(
+                  icon: Stack(
+                    children: [
+                      Icon(
+                        Icons.notifications,
+                        size: 28,
+                        color: Theme.of(context).iconTheme.color,
                       ),
+                      if (hasUnreadNotifications)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: const Center(
+                              child: Text(
+                                '!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, RoutesName.notificationScreen);
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            Text(
+              "Today's Quote",
+              style: TextStyle(
+                color: Theme.of(context).textTheme.titleLarge?.color,
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: isLoading
+                  ? Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).primaryColor,
+                ),
+              )
+                  : todayQuote != null
+                  ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '"${todayQuote!.text}"',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "- ${todayQuote!.author}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                      fontStyle: FontStyle.italic,
+                    ),
                   )
                 ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pushNamed(context, RoutesName.favoritesScreen),
-                      icon: Icon(Icons.favorite_border,
-                          size: 28, color: Theme.of(context).iconTheme.color),
-                      label: Text('My Favorites',
-                          style: TextStyle(
-                              fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).cardColor,
-                        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pushNamed(context, RoutesName.motivationScreen, arguments: {
-                        'categoryName': null, // Null for all quotes
-                        'categoryType': 'quote',
-                      }),
-                      icon: Icon(Icons.format_quote,
-                          size: 28, color: Theme.of(context).iconTheme.color),
-                      label: Text('Motivation',
-                          style: TextStyle(
-                              fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).cardColor,
-                        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.pushNamed(context, RoutesName.reminderScreen),
-                  icon: Icon(Icons.alarm, size: 28, color: Theme.of(context).iconTheme.color),
-                  label: Text('Schedule Reminder',
-                      style: TextStyle(
-                          fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).cardColor,
-                    foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Today's Quote",
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.titleLarge?.color,
-                  fontSize: 23,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: isLoading
-                    ? Center(child: CircularProgressIndicator(color: Theme.of(context).primaryColor))
-                    : todayQuote != null
-                    ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '"${todayQuote!.text}"',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      "- ${todayQuote!.author}",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    )
-                  ],
-                )
-                    : Text(
-                  '"Your wellness is an investment, not an expense."\n- Bishnu Kumar Yadav',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Quote Categories",
+              )
+                  : Text(
+                '"Your wellness is an investment, not an expense."\n- Bishnu Kumar Yadav',
                 style: TextStyle(
                   fontSize: 18,
-                  color: Theme.of(context).textTheme.titleLarge?.color,
-                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-              const SizedBox(height: 10),
-              buildQuoteCategoryHorizontalList(quoteCategories, 'quote', context),
-              const SizedBox(height: 20),
-              Text(
-                "Health Tips",
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.titleLarge?.color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Text(
+              "Quote Categories",
+              style: TextStyle(
+                fontSize: 18,
+                color: Theme.of(context).textTheme.titleLarge?.color,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 10),
-              buildQuoteCategoryHorizontalList(healthCategories, 'health', context),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10),
+            buildQuoteCategoryHorizontalList(quoteCategories, 'quote', context),
+
+            const SizedBox(height: 20),
+
+            Text(
+              "Health Tips",
+              style: TextStyle(
+                color: Theme.of(context).textTheme.titleLarge?.color,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            buildQuoteCategoryHorizontalList(healthCategories, 'health', context),
+
+            const SizedBox(height: 12),
+          ],
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // List of pages for direct switching
+    final List<Widget> pages = [
+      _buildHomeContent(), // Index 0: Home (Dashboard content)
+      const FavoritesScreen(), // Index 1: Favourites (direct content)
+      const ReminderScreen(), // Index 2: Set Reminder (direct content)
+    ];
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
+      // Bottom Navigation Bar: Home, Favourites, Set Reminder
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _navIndex,
+        onDestinationSelected: _onNavTap,
+        height: 68,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        backgroundColor: Theme.of(context).bottomAppBarTheme.color ??
+            Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.6),
+        indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+        destinations: [
+          NavigationDestination(
+            icon: Icon(
+              Icons.home_outlined,
+              color: Theme.of(context).iconTheme.color?.withOpacity(0.7),
+            ),
+            selectedIcon: Icon(
+              Icons.home_rounded,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.favorite_outline_rounded,
+              color: Theme.of(context).iconTheme.color?.withOpacity(0.7),
+            ),
+            selectedIcon: Icon(
+              Icons.favorite_rounded,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            label: 'Favourites',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.alarm_add_outlined,
+              color: Theme.of(context).iconTheme.color?.withOpacity(0.7),
+            ),
+            selectedIcon: Icon(
+              Icons.alarm_on_rounded,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            label: 'Set Reminder',
+          ),
+        ],
+      ),
+
+      body: IndexedStack(
+        index: _navIndex,
+        children: pages, // Directly switches between contents
       ),
     );
   }
