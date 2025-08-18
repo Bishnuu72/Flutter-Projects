@@ -81,6 +81,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         title: const Text('My Favorites'),
         centerTitle: true,
         elevation: 0,
+        automaticallyImplyLeading: false, // Remove automatic back button
       ),
       body: isLoading
           ? Center(

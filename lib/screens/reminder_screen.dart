@@ -195,6 +195,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
             color: Theme.of(context).textTheme.titleLarge?.color,
           ),
         ),
+        automaticallyImplyLeading: false, // Remove automatic back button
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: _isLoadingCategories

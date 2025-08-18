@@ -141,7 +141,7 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
                   ),
                   const SizedBox(height: 40),
                   const Text(
-                    "Choose the best topic you wanna study",
+                    "Select all topics that motivates you",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -150,7 +150,7 @@ class _PreferenceSelectionState extends State<PreferenceSelection> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "You can select multiple subjects",
+                    "You can select multiple topics",
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 16,
